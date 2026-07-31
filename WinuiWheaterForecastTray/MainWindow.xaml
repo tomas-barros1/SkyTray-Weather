@@ -43,24 +43,21 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Hero Card -->
-            <Border Grid.Row="1" CornerRadius="12" Padding="14,12" Margin="0,0,0,10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <!-- Hero Card (Supports long condition names like "Predominantemente Limpo") -->
+            <Border Grid.Row="1" CornerRadius="12" Padding="16,12" Margin="0,0,0,10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                            <TextBlock x:Name="TxtTemperature" FontSize="34" FontWeight="Bold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            <TextBlock x:Name="TxtCondition" FontSize="15" FontWeight="Medium" VerticalAlignment="Bottom" Margin="8,0,0,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-
-                        <TextBlock x:Name="TxtFeelsLike" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
+                        <TextBlock x:Name="TxtTemperature" FontSize="36" FontWeight="Bold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" Margin="0,0,0,-2" />
+                        <TextBlock x:Name="TxtCondition" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,1,0,3" />
+                        <TextBlock x:Name="TxtFeelsLike" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                     </StackPanel>
 
-                    <TextBlock x:Name="TxtEmoji" Grid.Column="1" FontSize="44" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="6,0,0,0" />
+                    <TextBlock x:Name="TxtEmoji" Grid.Column="1" FontSize="46" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,0,0,0" />
                 </Grid>
             </Border>
 
@@ -83,81 +80,81 @@
 
                 <!-- Row 1 -->
                 <!-- Humidity -->
-                <Border Grid.Row="0" Grid.Column="0" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="0" Grid.Column="0" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblHumidity" Text="💧 Humidity" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblHumidity" Text="💧 Humidity" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtHumidity" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Wind Speed -->
-                <Border Grid.Row="0" Grid.Column="2" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="0" Grid.Column="2" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblWind" Text="🌬️ Wind" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblWind" Text="🌬️ Wind" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtWind" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Cloud Cover -->
-                <Border Grid.Row="0" Grid.Column="4" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="0" Grid.Column="4" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblCloudCover" Text="☁️ Clouds" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblCloudCover" Text="☁️ Clouds" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtCloudCover" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Row 2 -->
                 <!-- Rain / Precipitation -->
-                <Border Grid.Row="2" Grid.Column="0" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="2" Grid.Column="0" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblRain" Text="☔ Rain" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblRain" Text="☔ Rain" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtPrecipitation" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Pressure -->
-                <Border Grid.Row="2" Grid.Column="2" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="2" Grid.Column="2" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblPressure" Text="⏲️ Pressure" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblPressure" Text="⏲️ Pressure" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtPressure" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Air Quality -->
-                <Border Grid.Row="2" Grid.Column="4" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="2" Grid.Column="4" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblAirQuality" Text="🍃 Air Quality" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblAirQuality" Text="🍃 Air Quality" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtAirQuality" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Row 3 -->
                 <!-- UV Index -->
-                <Border Grid.Row="4" Grid.Column="0" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="4" Grid.Column="0" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblUV" Text="☀️ UV Index" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblUV" Text="☀️ UV Index" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtUV" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Sunrise -->
-                <Border Grid.Row="4" Grid.Column="2" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="4" Grid.Column="2" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblSunrise" Text="🌅 Sunrise" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblSunrise" Text="🌅 Sunrise" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtSunrise" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Sunset -->
-                <Border Grid.Row="4" Grid.Column="4" CornerRadius="8" Padding="6,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Border Grid.Row="4" Grid.Column="4" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock x:Name="LblSunset" Text="🌇 Sunset" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="LblSunset" Text="🌇 Sunset" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="TxtSunset" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,1,0,0" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <!-- 6-Hour Horizontal Forecast Section (Zero Scroll) -->
+            <!-- 6-Hour Horizontal Forecast Section -->
             <Grid Grid.Row="3">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
