@@ -1,0 +1,59 @@
+name: Build & Package SkyTray Weather
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build, Test & Package
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore WinuiWheaterForecastTray.slnx
+
+      - name: Run Automated Tests
+        run: dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=normal"
+
+      - name: Publish Standalone Release Build
+        run: dotnet publish WinuiWheaterForecastTray/WinuiWheaterForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
+
+      - name: Copy Installer Script to Package
+        shell: powershell
+        run: |
+          Copy-Item -Path "Install-SkyTray.ps1" -Destination "./publish/Install-SkyTray.ps1" -Force
+
+      - name: Compress Release Package
+        shell: powershell
+        run: |
+          Compress-Archive -Path "./publish/*" -DestinationPath "SkyTray-Weather-Setup.zip" -Force
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkyTray-Weather-Setup
+          path: SkyTray-Weather-Setup.zip
+          retention-days: 30
+
+      - name: Create GitHub Release (On Tag Push)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: SkyTray-Weather-Setup.zip
+          name: SkyTray Weather Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
