@@ -11,7 +11,7 @@ namespace WinuiWheaterForecastTray.Services;
 
 public sealed class AirQualityService : IAirQualityService
 {
-    private static readonly HttpClient DefaultHttpClient = new();
+    private static readonly HttpClient DefaultHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private readonly HttpClient _httpClient;
 
     public AirQualityService(HttpClient? httpClient = null)

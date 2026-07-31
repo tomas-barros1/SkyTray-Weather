@@ -10,7 +10,7 @@ namespace WinuiWheaterForecastTray.Services;
 
 public sealed class IpLocationService : ILocationService
 {
-    private static readonly HttpClient DefaultHttpClient = new();
+    private static readonly HttpClient DefaultHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private readonly HttpClient _httpClient;
 
     public IpLocationService(HttpClient? httpClient = null)

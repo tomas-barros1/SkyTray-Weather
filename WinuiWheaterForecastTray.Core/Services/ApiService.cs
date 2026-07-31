@@ -12,7 +12,7 @@ namespace WinuiWheaterForecastTray.Services;
 public sealed class ApiService : IApiService
 {
     private const string ForecastBaseUrl = "https://api.open-meteo.com/v1/forecast";
-    private static readonly HttpClient DefaultHttpClient = new();
+    private static readonly HttpClient DefaultHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private readonly HttpClient _httpClient;
 
     public ApiService(HttpClient? httpClient = null)

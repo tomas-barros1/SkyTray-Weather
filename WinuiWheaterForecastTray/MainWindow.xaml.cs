@@ -58,6 +58,9 @@ namespace WinuiWheaterForecastTray
         private WeatherForecastData? _currentForecast;
         private SettingsWindow? _settingsWindow;
         private bool _isExiting = false;
+        private bool _hasLoadedOnce = false;
+        private int _startupRetryCount = 0;
+        private static readonly int[] StartupRetryDelaysSeconds = { 10, 30, 60 };
         private DateTime _lastDeactivatedTime = DateTime.MinValue;
 
         public MainWindow()
@@ -97,7 +100,7 @@ namespace WinuiWheaterForecastTray
             this.Activated += MainWindow_Activated;
             this.Closed += MainWindow_Closed;
 
-            _ = RefreshWeatherAsync();
+            _ = RefreshWeatherAsync(isStartup: true);
         }
 
         private void UpdateRefreshTimerInterval()
@@ -203,7 +206,7 @@ namespace WinuiWheaterForecastTray
             return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
         }
 
-        private async Task RefreshWeatherAsync()
+        private async Task RefreshWeatherAsync(bool isStartup = false)
         {
             try
             {
@@ -215,12 +218,22 @@ namespace WinuiWheaterForecastTray
 
                 if (_currentForecast != null)
                 {
+                    _hasLoadedOnce = true;
+                    _startupRetryCount = 0;
                     UpdateUI(_currentForecast);
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Weather load error: {ex}");
+
+                // On startup, the network may not be ready yet. Schedule a retry with backoff.
+                if (isStartup && !_hasLoadedOnce && _startupRetryCount < StartupRetryDelaysSeconds.Length)
+                {
+                    int delaySeconds = StartupRetryDelaysSeconds[_startupRetryCount++];
+                    System.Diagnostics.Debug.WriteLine($"[Startup] Network not ready. Retrying in {delaySeconds}s (attempt {_startupRetryCount})...");
+                    ScheduleStartupRetry(delaySeconds);
+                }
             }
             finally
             {
@@ -228,6 +241,20 @@ namespace WinuiWheaterForecastTray
                 LoadingStack.Visibility = Visibility.Collapsed;
                 ContentGrid.Visibility = Visibility.Visible;
             }
+        }
+
+        private void ScheduleStartupRetry(int delaySeconds)
+        {
+            var retryTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(delaySeconds) };
+            retryTimer.Tick += (s, e) =>
+            {
+                retryTimer.Stop();
+                if (!_hasLoadedOnce)
+                {
+                    _ = RefreshWeatherAsync(isStartup: true);
+                }
+            };
+            retryTimer.Start();
         }
 
         private void UpdateUI(WeatherForecastData data)
