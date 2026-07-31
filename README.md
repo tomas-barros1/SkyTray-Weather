@@ -48,7 +48,7 @@ Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica),
 
 ### 🚀 Instalação Rápida (1-Clique)
 
-1. Vá até a seção **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** e baixe o `SkyTray-Weather-Setup.zip`.
+1. Vá até a seção **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** e baixe o `SkyTray-Weather-win-x64.zip`.
 2. Extraia o conteúdo e execute o script `Install-SkyTray.ps1` no PowerShell:
 
 ```powershell
@@ -109,7 +109,7 @@ Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray 
 
 ### 🚀 Quick 1-Click Installation
 
-1. Go to the **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** page and download `SkyTray-Weather-Setup.zip`.
+1. Go to the **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** page and download `SkyTray-Weather-win-x64.zip`.
 2. Extract the ZIP archive and run `Install-SkyTray.ps1` in PowerShell:
 
 ```powershell
