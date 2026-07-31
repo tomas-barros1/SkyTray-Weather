@@ -25,7 +25,7 @@ jobs:
         run: dotnet restore WinuiWheaterForecastTray.slnx
 
       - name: Run Automated Tests
-        run: dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=normal"
+        run: dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj --configuration Release --logger "console;verbosity=normal"
 
       - name: Publish Standalone Release Build
         run: dotnet publish WinuiWheaterForecastTray/WinuiWheaterForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
