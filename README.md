@@ -1,9 +1,20 @@
 # ☀️ SkyTray Weather
 
-[![Build & Release](https://github.com/tomas-barros1/SkyTray-Weather/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/tomas-barros1/SkyTray-Weather/actions/workflows/build-and-release.yml)
-![.NET 8.0](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)
-![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D4?logo=windows)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+<p align="center">
+  <a href="#-skytray-weather---português">🇧🇷 Português</a> •
+  <a href="#-skytray-weather---english">🇺🇸 English</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8.0" />
+  <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D4?logo=windows&logoColor=white" alt="Platform" />
+  <img src="https://img.shields.io/badge/UI-WinUI%203-0078D4?logo=windows11&logoColor=white" alt="WinUI 3" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License" />
+</p>
+
+---
+
+## 🇧🇷 SkyTray Weather - Português
 
 **SkyTray Weather** é um aplicativo desktop nativo para Windows 11/10 projetado para rodar de forma discreta, elegante e ultra-rápida na bandeja do sistema (System Tray).
 
@@ -11,7 +22,7 @@ Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica),
 
 ---
 
-## 🌟 Funcionalidades
+### 🌟 Funcionalidades
 
 - ☀️ **Ícone Vetorial Dinâmico no Tray**: Renderização vetorial GDI+ nativa em alta definição (32bpp ARGB) que altera o ícone de acordo com o tempo (Sol, Lua, Parcialmente Nublado, Chuva, Tempestade, Neve).
 - 📍 **Localização Automática**: Geolocalização nativa do Windows com fallback automático via IP para nunca deixar você sem previsão.
@@ -35,9 +46,20 @@ Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica),
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+### 🚀 Instalação Rápida (1-Clique)
 
-O repositório é estruturado de forma desacoplada seguindo boas práticas de engenharia de software:
+1. Vá até a seção **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** e baixe o `SkyTray-Weather-Setup.zip`.
+2. Extraia o conteúdo e execute o script `Install-SkyTray.ps1` no PowerShell:
+
+```powershell
+powershell -File Install-SkyTray.ps1
+```
+
+O aplicativo será instalado automaticamente em `%LocalAppData%\SkyTrayWeather` com atalho criado no seu **Menu Iniciar**.
+
+---
+
+### 🏗️ Arquitetura do Projeto
 
 ```text
 ├── WinuiWheaterForecastTray.Core/      # Biblioteca de domínio .NET 8 (DTOs, Serviços, i18n, APIs)
@@ -49,51 +71,56 @@ O repositório é estruturado de forma desacoplada seguindo boas práticas de en
 
 ---
 
-## 🚀 Instalação Rápida (1-Clique)
+<br/>
 
-### Opção 1: Baixar o Instalador Pronto (GitHub Release)
-1. Vá até a seção **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** e baixe o `SkyTray-Weather-Setup.zip`.
-2. Extraia o conteúdo e clique duas vezes em `Install-SkyTray.ps1` ou execute no PowerShell:
+---
+
+## 🇺🇸 SkyTray Weather - English
+
+**SkyTray Weather** is a native Windows 11/10 desktop application designed to run quietly, elegantly, and lightning-fast directly from your System Tray.
+
+Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray delivers a full dashboard with 11 real-time weather metrics, next 6-hour forecast, internationalization (Portuguese & English), and crisp vector tray icons.
+
+---
+
+### 🌟 Features
+
+- ☀️ **Dynamic Vector Tray Icons**: Native GDI+ 32bpp ARGB anti-aliased vector rendering that dynamically switches tray icons according to weather condition (Sun, Moon, Partly Cloudy, Rain, Thunderstorm, Snow).
+- 📍 **Automatic Location Detection**: Windows native Geolocator with automatic IP geolocation fallback.
+- 📊 **11 Weather Metrics Dashboard**:
+  - 🌡️ Temperature & Feels Like Temperature
+  - ☁️ Cloud Cover (%)
+  - 💧 Humidity (%)
+  - ⏲️ Surface Pressure (hPa)
+  - 🌬️ Wind Speed (km/h)
+  - ☔ Rain / Precipitation (mm/h)
+  - 🍃 Air Quality Index (US AQI)
+  - ☀️ Max UV Index
+  - 🌅 Sunrise Time
+  - 🌇 Sunset Time
+  - 🕒 Next 6 Hours Forecast
+- 🌐 **Internationalization (i18n)**: Auto-detects OS UI language with JSON translation dictionaries (`pt_BR.json` and `en_US.json`).
+- ⚙️ **Settings & Autostart**:
+  - **Start with Windows** autostart toggle (`HKCU\...\Run`).
+  - Configurable Refresh Interval (5 min, 10 min, 15 min [default], 30 min, 60 min).
+- ❌ **Background Persistence**: Closing the window hides it directly to the system tray. Right-click the tray icon to open Settings or Exit.
+
+---
+
+### 🚀 Quick 1-Click Installation
+
+1. Go to the **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** page and download `SkyTray-Weather-Setup.zip`.
+2. Extract the ZIP archive and run `Install-SkyTray.ps1` in PowerShell:
 
 ```powershell
 powershell -File Install-SkyTray.ps1
 ```
 
-O aplicativo será instalado automaticamente em `%LocalAppData%\SkyTrayWeather` com atalho criado no seu **Menu Iniciar**.
+The application will automatically install to `%LocalAppData%\SkyTrayWeather` and create a Start Menu shortcut.
 
 ---
 
-### Opção 2: Compilar a partir do Código Fonte
-
-#### Pré-requisitos
-- SDK do .NET 8.0
-- Windows 10 Versão 1809 (build 17763) ou superior / Windows 11
-
-#### Comandos de Compilação
-```powershell
-# Clonar o repositório
-git clone https://github.com/tomas-barros1/SkyTray-Weather.git
-cd SkyTray-Weather
-
-# Executar a suíte de testes automatizados
-dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj
-
-# Compilar e publicar a versão Release
-dotnet publish WinuiWheaterForecastTray/WinuiWheaterForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64
-
-# Executar o instalador local
-powershell -File Install-SkyTray.ps1
-```
-
----
-
-## 🧪 Testes Automatizados
-
-O repositório inclui uma suíte completa de testes xUnit cobrindo:
-- Deserialização de DTOs da API Open-Meteo.
-- Mapeamento de códigos meteorológicos WMO para ícones e condições.
-- Serviço de internacionalização (i18n) e fallbacks.
-- Testes de integração contratual com a API live do Open-Meteo.
+### 🧪 Running Tests
 
 ```powershell
 dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj --logger "console;verbosity=normal"
@@ -101,6 +128,6 @@ dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj
 
 ---
 
-## 📄 Licença
+## 📄 License
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+Distributed under the MIT License. See `LICENSE` for more information.
