@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.Graphics;
 using WinuiWheaterForecastTray.Models;
+using WinuiWheaterForecastTray.Native;
 using WinuiWheaterForecastTray.Services;
 using WinuiWheaterForecastTray.Services.Interfaces;
 using WinuiWheaterForecastTray.Tray;

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace WinuiWheaterForecastTray.Tray;
+namespace WinuiWheaterForecastTray.Native;
 
 [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 public struct NOTIFYICONDATA

@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using WinuiWheaterForecastTray.Native;
 using WinuiWheaterForecastTray.Services;
 using WinuiWheaterForecastTray.Services.Interfaces;
 
@@ -95,7 +96,7 @@ public sealed class TrayIconManager : IDisposable
             cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATA>(),
             hWnd = _hwnd,
             uID = 1001,
-            uFlags = NIF_ICON | NIF_TIP, // Fixed: Enable icon and tooltip update flags
+            uFlags = NIF_ICON | NIF_TIP,
             hIcon = newHIcon,
             szTip = TruncateTooltip(tooltipText)
         };
