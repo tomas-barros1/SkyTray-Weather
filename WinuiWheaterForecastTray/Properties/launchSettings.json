@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WinuiWheaterForecastTray (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "WinuiWheaterForecastTray (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

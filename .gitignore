@@ -1,0 +1,28 @@
+# Build & Output Directories
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+.idea/
+.vscode/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+
+# Windows OS Generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# NuGet Packages
+*.nupkg
+packages/
+
+# Antigravity artifacts
+.gemini/
