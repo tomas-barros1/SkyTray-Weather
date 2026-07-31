@@ -22,6 +22,8 @@
   "SettingsTitle": "Settings — SkyTray",
   "RefreshInterval": "Refresh interval:",
   "Minutes": "minutes",
+  "RefreshTooltip": "Refresh weather",
+  "CloseTooltip": "Close to tray",
   "Aqi_Good": "Good",
   "Aqi_Fair": "Fair",
   "Aqi_Moderate": "Moderate",

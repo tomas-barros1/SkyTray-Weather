@@ -5,6 +5,7 @@ using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.Graphics;
 using WinuiWheaterForecastTray.Models;
@@ -56,6 +57,7 @@ namespace WinuiWheaterForecastTray
         private WeatherForecastData? _currentForecast;
         private SettingsWindow? _settingsWindow;
         private bool _isExiting = false;
+        private DateTime _lastDeactivatedTime = DateTime.MinValue;
 
         public MainWindow()
         {
@@ -116,6 +118,9 @@ namespace WinuiWheaterForecastTray
             LblSunrise.Text = $"🌅 {_i18nService.GetString("Sunrise", "Sunrise")}";
             LblSunset.Text = $"🌇 {_i18nService.GetString("Sunset", "Sunset")}";
             LblNext6Hours.Text = _i18nService.GetString("Next6Hours", "Next 6 Hours");
+
+            ToolTipService.SetToolTip(BtnRefresh, _i18nService.GetString("RefreshTooltip", "Refresh weather"));
+            ToolTipService.SetToolTip(BtnClose, _i18nService.GetString("CloseTooltip", "Close to tray"));
         }
 
         private void ConfigureWindow()
@@ -253,6 +258,13 @@ namespace WinuiWheaterForecastTray
         {
             DispatcherQueue.TryEnqueue(() =>
             {
+                double msSinceDeactivated = (DateTime.UtcNow - _lastDeactivatedTime).TotalMilliseconds;
+                if (msSinceDeactivated < 350)
+                {
+                    // Do not re-open when clicked while already open (Deactivated just hid it 1ms ago)
+                    return;
+                }
+
                 if (IsWindowVisible(_hwnd))
                 {
                     HideWindowToTray();
@@ -304,6 +316,7 @@ namespace WinuiWheaterForecastTray
             {
                 if (_settingsWindow == null)
                 {
+                    _lastDeactivatedTime = DateTime.UtcNow;
                     HideWindowToTray();
                 }
             }
