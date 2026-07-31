@@ -18,11 +18,18 @@ public sealed class I18nService : II18nService
         var culture = localeOverride ?? CultureInfo.CurrentUICulture.Name;
         CurrentCulture = culture;
 
-        bool isPortuguese = culture.StartsWith("pt", StringComparison.OrdinalIgnoreCase);
-        string jsonFileName = isPortuguese ? "pt_BR.json" : "en_US.json";
-
+        string jsonFileName = ResolveLocaleFileName(culture);
         LoadTranslations(jsonFileName);
     }
+
+    private static string ResolveLocaleFileName(string culture) => culture switch
+    {
+        string c when c.StartsWith("pt", StringComparison.OrdinalIgnoreCase) => "pt_BR.json",
+        string c when c.StartsWith("es", StringComparison.OrdinalIgnoreCase) => "es_ES.json",
+        string c when c.StartsWith("fr", StringComparison.OrdinalIgnoreCase) => "fr_FR.json",
+        string c when c.StartsWith("de", StringComparison.OrdinalIgnoreCase) => "de_DE.json",
+        _ => "en_US.json"
+    };
 
     private void LoadTranslations(string jsonFileName)
     {
@@ -89,23 +96,23 @@ public sealed class I18nService : II18nService
         return (emoji, desc);
     }
 
-    public string GetAirQualityDescription(double usAqi)
+    public string GetAirQualityDescription(double usAqi) => usAqi switch
     {
-        if (usAqi <= 50) return GetString("Aqi_Good", "Bom");
-        if (usAqi <= 100) return GetString("Aqi_Fair", "Razoável");
-        if (usAqi <= 150) return GetString("Aqi_Moderate", "Moderado");
-        if (usAqi <= 200) return GetString("Aqi_Poor", "Ruim");
-        return GetString("Aqi_VeryPoor", "Péssimo");
-    }
+        <= 50  => GetString("Aqi_Good",    "Bom"),
+        <= 100 => GetString("Aqi_Fair",    "Razoável"),
+        <= 150 => GetString("Aqi_Moderate","Moderado"),
+        <= 200 => GetString("Aqi_Poor",    "Ruim"),
+        _      => GetString("Aqi_VeryPoor","Péssimo")
+    };
 
-    public string GetUvDescription(double uvIndex)
+    public string GetUvDescription(double uvIndex) => uvIndex switch
     {
-        if (uvIndex <= 2) return GetString("Uv_Low", "Baixo");
-        if (uvIndex <= 5) return GetString("Uv_Moderate", "Moderado");
-        if (uvIndex <= 7) return GetString("Uv_High", "Alto");
-        if (uvIndex <= 10) return GetString("Uv_VeryHigh", "Muito Alto");
-        return GetString("Uv_Extreme", "Extremo");
-    }
+        <= 2  => GetString("Uv_Low",     "Baixo"),
+        <= 5  => GetString("Uv_Moderate","Moderado"),
+        <= 7  => GetString("Uv_High",    "Alto"),
+        <= 10 => GetString("Uv_VeryHigh","Muito Alto"),
+        _     => GetString("Uv_Extreme", "Extremo")
+    };
 
     public string FormatSummaryText(string cityName, string emoji, double temperature, string conditionText, double humidity, double windSpeed)
     {

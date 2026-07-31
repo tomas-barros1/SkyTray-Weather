@@ -12,8 +12,9 @@ public class ApiContractIntegrationTests
     [InlineData(-12.2664, -38.9663, "Feira de Santana")]
     public async Task LiveApiEndpoint_ReturnsValidContractData(double lat, double lon, string cityLabel)
     {
-        // Arrange
-        var apiService = new ApiService();
+        // Arrange — use a generous 30s timeout for integration tests (production uses 5s)
+        var httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+        var apiService = new ApiService(httpClient);
 
         // Act
         var result = await apiService.GetWeatherDataAsync(lat, lon);
