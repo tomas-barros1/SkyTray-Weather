@@ -63,7 +63,18 @@ O aplicativo será instalado automaticamente em `%LocalAppData%\SkyTrayWeather` 
 
 ---
 
-### 🏗️ Arquitetura do Projeto
+### 🌐 Fontes de Dados
+
+| Serviço | Uso | Licença |
+|---|---|---|
+| **[Open-Meteo](https://open-meteo.com/)** | Previsão do tempo (temperatura, vento, precipitação, UV, etc.) e qualidade do ar | Grátis, sem API key |
+| **[BigDataCloud](https://www.bigdatacloud.com/)** | Geocodificação reversa (coordenadas → nome da cidade) | Grátis |
+| **[ipapi.co](https://ipapi.co/)** | Fallback de geolocalização via IP quando a localização nativa não está disponível | Grátis |
+
+> O dado de **"☔ Chuva"** exibido no painel é a **probabilidade de precipitação** (`precipitation_probability`) da hora atual, fornecida pela Open-Meteo — não a leitura instantânea em mm.
+
+---
+
 
 ```text
 ├── WinuiWheaterForecastTray.Core/      # Biblioteca de domínio .NET 8 (DTOs, Serviços, i18n, APIs)
@@ -121,6 +132,18 @@ powershell -File Install-SkyTray.ps1
 ```
 
 The application will automatically install to `%LocalAppData%\SkyTrayWeather` and create a Start Menu shortcut.
+
+---
+
+### 🌐 Data Sources
+
+| Service | Purpose | License |
+|---|---|---|
+| **[Open-Meteo](https://open-meteo.com/)** | Weather forecast (temperature, wind, precipitation probability, UV index, etc.) and air quality | Free, no API key required |
+| **[BigDataCloud](https://www.bigdatacloud.com/)** | Reverse geocoding (coordinates → city name) | Free |
+| **[ipapi.co](https://ipapi.co/)** | IP-based geolocation fallback when native Windows location is unavailable | Free |
+
+> The **"☔ Rain"** panel value shows the **precipitation probability** (`precipitation_probability`) for the current hour from Open-Meteo — not the instantaneous mm accumulation.
 
 ---
 

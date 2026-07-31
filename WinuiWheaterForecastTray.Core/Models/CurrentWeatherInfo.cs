@@ -15,7 +15,8 @@ public class CurrentWeatherInfo
     public double WindSpeed { get; set; }
     public double CloudCover { get; set; }
     public double SurfacePressure { get; set; }
-    public double Precipitation { get; set; }
+    /// <summary>Precipitation probability for the current hour (0–100 %).</summary>
+    public double PrecipitationProbability { get; set; }
     public string AirQualityText { get; set; } = "Bom";
     public string UvIndexText { get; set; } = "Moderado";
     public string SunriseTime { get; set; } = "05:55";

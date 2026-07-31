@@ -90,6 +90,27 @@ public sealed class WeatherService : IWeatherService
 
             double uvIndexMax = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : 3.0;
 
+            DateTime targetTime = DateTime.TryParse(dto.Current.Time, CultureInfo.InvariantCulture, DateTimeStyles.None, out var currentDt) ? currentDt : DateTime.Now;
+
+            // Use precipitation probability from the current hour (hourly data) rather than the
+            // instantaneous 15-min precipitation accumulation (current.precipitation in mm),
+            // which is almost always 0.0 and was mislabeled as mm/h in the UI.
+            double precipProb = 0.0;
+            if (dto.Hourly != null)
+            {
+                for (int i = 0; i < dto.Hourly.Time.Count; i++)
+                {
+                    if (DateTime.TryParse(dto.Hourly.Time[i], CultureInfo.InvariantCulture, DateTimeStyles.None, out var hDt)
+                        && hDt.Date == targetTime.Date && hDt.Hour == targetTime.Hour)
+                    {
+                        precipProb = i < dto.Hourly.PrecipitationProbability.Count
+                            ? dto.Hourly.PrecipitationProbability[i]
+                            : 0.0;
+                        break;
+                    }
+                }
+            }
+
             result.Current = new CurrentWeatherInfo
             {
                 CityName = cityName,
@@ -103,7 +124,7 @@ public sealed class WeatherService : IWeatherService
                 WindSpeed = dto.Current.WindSpeed10m,
                 CloudCover = dto.Current.CloudCover,
                 SurfacePressure = dto.Current.SurfacePressure,
-                Precipitation = dto.Current.Precipitation,
+                PrecipitationProbability = precipProb,
                 AirQualityText = _i18nService.GetAirQualityDescription(aqi),
                 UvIndexText = _i18nService.GetUvDescription(uvIndexMax),
                 SunriseTime = sunriseTime,

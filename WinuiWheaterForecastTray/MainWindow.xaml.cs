@@ -269,7 +269,7 @@ namespace WinuiWheaterForecastTray
             TxtHumidity.Text = $"{Math.Round(data.Current.Humidity)}%";
             TxtWind.Text = $"{Math.Round(data.Current.WindSpeed)} km/h";
             TxtCloudCover.Text = $"{Math.Round(data.Current.CloudCover)}%";
-            TxtPrecipitation.Text = $"{data.Current.Precipitation:F1} mm/h";
+            TxtPrecipitation.Text = $"{data.Current.PrecipitationProbability:F0}%";
             TxtPressure.Text = $"{data.Current.SurfacePressure:F1} hPa";
             TxtAirQuality.Text = data.Current.AirQualityText;
             TxtUV.Text = data.Current.UvIndexText;

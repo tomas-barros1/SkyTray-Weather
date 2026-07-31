@@ -89,5 +89,12 @@ public class WeatherServiceTests
         forecastData.HourlyForecast[5].FormattedTime.Should().Be("18:00");
         forecastData.HourlyForecast[5].Emoji.Should().Be("🌙");
         forecastData.HourlyForecast[5].DisplayTemperature.Should().Be("20°");
+
+        // The current hour is 13:00 — precipitation probability for that slot is 0%
+        forecastData.Current.PrecipitationProbability.Should().Be(0,
+            because: "PrecipitationProbability is sourced from hourly[0] (13:00) which has value 0");
+
+        // Hourly slot at 15:00 (index=2) has 80% rain chance
+        forecastData.HourlyForecast[2].RainChance.Should().Be(80);
     }
 }
