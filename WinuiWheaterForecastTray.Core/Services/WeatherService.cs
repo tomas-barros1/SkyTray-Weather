@@ -116,12 +116,31 @@ public sealed class WeatherService : IWeatherService
         if (dto.Hourly != null && dto.Hourly.Time.Count > 0)
         {
             int startIndex = 0;
-            if (!string.IsNullOrEmpty(dto.Current?.Time))
+            DateTime targetTime = DateTime.Now;
+
+            if (!string.IsNullOrEmpty(dto.Current?.Time) && DateTime.TryParse(dto.Current.Time, CultureInfo.InvariantCulture, DateTimeStyles.None, out var currentDt))
             {
-                int matchIndex = dto.Hourly.Time.IndexOf(dto.Current.Time);
-                if (matchIndex >= 0)
+                targetTime = currentDt;
+            }
+
+            for (int i = 0; i < dto.Hourly.Time.Count; i++)
+            {
+                if (DateTime.TryParse(dto.Hourly.Time[i], CultureInfo.InvariantCulture, DateTimeStyles.None, out var hourlyDt))
                 {
-                    startIndex = matchIndex;
+                    if (hourlyDt.Date > targetTime.Date || (hourlyDt.Date == targetTime.Date && hourlyDt.Hour >= targetTime.Hour))
+                    {
+                        startIndex = i;
+                        break;
+                    }
+                }
+                else if (dto.Hourly.Time[i].Contains('T'))
+                {
+                    var parts = dto.Hourly.Time[i].Split('T');
+                    if (parts.Length > 1 && parts[1].StartsWith($"{targetTime.Hour:D2}"))
+                    {
+                        startIndex = i;
+                        break;
+                    }
                 }
             }
 
