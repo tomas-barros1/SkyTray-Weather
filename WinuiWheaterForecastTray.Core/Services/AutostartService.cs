@@ -4,7 +4,8 @@ namespace WinuiWheaterForecastTray.Services;
 
 public class AutostartService : Interfaces.IAutostartService
 {
-    private const string AppName = "WinuiWheaterForecastTray";
+    private const string AppName = "SkyTrayWeather";
+    private const string LegacyAppName = "WinuiWheaterForecastTray";
     private const string RunRegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
     public bool IsAutostartEnabled()
@@ -14,7 +15,10 @@ public class AutostartService : Interfaces.IAutostartService
             if (OperatingSystem.IsWindows())
             {
                 using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunRegistryKey, false);
-                return key?.GetValue(AppName) != null;
+                if (key != null)
+                {
+                    return key.GetValue(AppName) != null || key.GetValue(LegacyAppName) != null;
+                }
             }
         }
         catch
@@ -44,6 +48,7 @@ public class AutostartService : Interfaces.IAutostartService
                     else
                     {
                         key.DeleteValue(AppName, false);
+                        key.DeleteValue(LegacyAppName, false);
                     }
                 }
             }

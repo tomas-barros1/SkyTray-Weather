@@ -123,11 +123,14 @@ public sealed class WeatherService : IWeatherService
                 targetTime = currentDt;
             }
 
+            // If minutes > 0 (e.g., 13:56), target the upcoming hour (14:00)
+            DateTime nextHourTarget = targetTime.Minute > 0 ? targetTime.AddHours(1) : targetTime;
+
             for (int i = 0; i < dto.Hourly.Time.Count; i++)
             {
                 if (DateTime.TryParse(dto.Hourly.Time[i], CultureInfo.InvariantCulture, DateTimeStyles.None, out var hourlyDt))
                 {
-                    if (hourlyDt.Date > targetTime.Date || (hourlyDt.Date == targetTime.Date && hourlyDt.Hour >= targetTime.Hour))
+                    if (hourlyDt.Date > nextHourTarget.Date || (hourlyDt.Date == nextHourTarget.Date && hourlyDt.Hour >= nextHourTarget.Hour))
                     {
                         startIndex = i;
                         break;
@@ -136,7 +139,7 @@ public sealed class WeatherService : IWeatherService
                 else if (dto.Hourly.Time[i].Contains('T'))
                 {
                     var parts = dto.Hourly.Time[i].Split('T');
-                    if (parts.Length > 1 && parts[1].StartsWith($"{targetTime.Hour:D2}"))
+                    if (parts.Length > 1 && parts[1].StartsWith($"{nextHourTarget.Hour:D2}"))
                     {
                         startIndex = i;
                         break;
