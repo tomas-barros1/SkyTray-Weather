@@ -12,6 +12,10 @@
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License" />
 </p>
 
+<p align="center">
+  <img src="Screenshots/1.png" alt="SkyTray Weather Screenshot" width="360" />
+</p>
+
 ---
 
 ## 🇧🇷 SkyTray Weather - Português
