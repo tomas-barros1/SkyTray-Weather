@@ -3,12 +3,16 @@ using WinuiWheaterForecastTray.Services.Interfaces;
 
 namespace WinuiWheaterForecastTray.Services;
 
-public class SettingsService : ISettingsService
+/// <summary>
+/// Service implementation for managing application refresh interval settings in HKCU registry.
+/// </summary>
+public sealed class SettingsService : ISettingsService
 {
     private const string SettingsRegistryKey = @"Software\WinuiWheaterForecastTray";
     private const string RefreshIntervalKey = "RefreshIntervalMinutes";
     private const int DefaultInterval = 15;
 
+    /// <inheritdoc/>
     public int GetRefreshIntervalMinutes()
     {
         try
@@ -30,6 +34,7 @@ public class SettingsService : ISettingsService
         return DefaultInterval;
     }
 
+    /// <inheritdoc/>
     public void SetRefreshIntervalMinutes(int minutes)
     {
         try

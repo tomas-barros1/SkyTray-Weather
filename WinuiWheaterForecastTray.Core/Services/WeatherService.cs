@@ -9,17 +9,25 @@ using WinuiWheaterForecastTray.Services.Interfaces;
 
 namespace WinuiWheaterForecastTray.Services;
 
+/// <summary>
+/// Orchestrator service responsible for aggregating weather, geocoding, and air quality data into unified domain models.
+/// </summary>
 public sealed class WeatherService : IWeatherService
 {
     private const double DefaultLatitude = -23.5505;
     private const double DefaultLongitude = -46.6333;
+
+    // R-01 / R-05: Named constants for fallback values
+    private const string DefaultSunriseTime = "05:55";
+    private const string DefaultSunsetTime  = "17:30";
+    private const double DefaultUvIndexMax  = 3.0;
+    private const int HourlyForecastSlots   = 6;
 
     private readonly IApiService _apiService;
     private readonly IGeocodingService _geocodingService;
     private readonly II18nService _i18nService;
     private readonly IAirQualityService _airQualityService;
 
-    // A-02: Explicit location provider fallback chain (e.g. Native -> IP)
     private readonly IReadOnlyList<ILocationService> _locationProviders;
 
     public WeatherService(
@@ -57,7 +65,7 @@ public sealed class WeatherService : IWeatherService
         yield return secondary ?? new IpLocationService();
     }
 
-    // A-03: Decomposed high-level workflow method
+    /// <inheritdoc/>
     public async Task<WeatherForecastData> GetForecastAsync(double? customLat = null, double? customLon = null, CancellationToken cancellationToken = default)
     {
         var (lat, lon) = await ResolveCoordinatesAsync(customLat, customLon, cancellationToken).ConfigureAwait(false);
@@ -66,7 +74,6 @@ public sealed class WeatherService : IWeatherService
         return BuildForecastData(dto, aqi, cityName);
     }
 
-    // A-02 / A-03: Coordinate resolution via provider chain
     private async Task<(double Latitude, double Longitude)> ResolveCoordinatesAsync(double? customLat, double? customLon, CancellationToken cancellationToken)
     {
         if (customLat.HasValue && customLon.HasValue)
@@ -82,7 +89,6 @@ public sealed class WeatherService : IWeatherService
         return (DefaultLatitude, DefaultLongitude);
     }
 
-    // A-03 / P-01: Concurrent HTTP fetch
     private async Task<(ApiResponseDTO dto, double aqi, string? cityName)> FetchAllAsync(double lat, double lon, CancellationToken cancellationToken)
     {
         var weatherTask = _apiService.GetWeatherDataAsync(lat, lon, cancellationToken);
@@ -94,7 +100,6 @@ public sealed class WeatherService : IWeatherService
         return (weatherTask.Result, aqiTask.Result, cityTask.Result);
     }
 
-    // A-03: Forecast model builder
     private WeatherForecastData BuildForecastData(ApiResponseDTO dto, double aqi, string? cityName)
     {
         if (dto.Current is null)
@@ -115,7 +120,6 @@ public sealed class WeatherService : IWeatherService
         };
     }
 
-    // A-03 / A-05: Current weather info builder using II18nService.CurrentFormatProvider
     private CurrentWeatherInfo BuildCurrentWeatherInfo(ApiResponseDTO dto, double aqi, string displayCityName, DateTime now, double precipProb)
     {
         bool isDay = dto.Current!.IsDay == 1;
@@ -126,12 +130,11 @@ public sealed class WeatherService : IWeatherService
             dto.Current.Temperature2m, condition,
             dto.Current.RelativeHumidity2m, dto.Current.WindSpeed10m);
 
-        // A-05: Format date using i18n layer's format provider
         string formattedDate = now.ToString("dddd, dd/MM", _i18nService.CurrentFormatProvider);
 
-        string sunriseTime = dto.Daily?.Sunrise.Count > 0 ? FormatTime(dto.Daily.Sunrise[0]) : "05:55";
-        string sunsetTime  = dto.Daily?.Sunset.Count  > 0 ? FormatTime(dto.Daily.Sunset[0])  : "17:30";
-        double uvIndexMax  = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : 3.0;
+        string sunriseTime = dto.Daily?.Sunrise.Count > 0 ? FormatTime(dto.Daily.Sunrise[0]) : DefaultSunriseTime;
+        string sunsetTime  = dto.Daily?.Sunset.Count  > 0 ? FormatTime(dto.Daily.Sunset[0])  : DefaultSunsetTime;
+        double uvIndexMax  = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : DefaultUvIndexMax;
 
         return new CurrentWeatherInfo
         {
@@ -156,7 +159,6 @@ public sealed class WeatherService : IWeatherService
         };
     }
 
-    // A-03 / P-03: Extract precip probability and start index in a single pass
     private static (double PrecipProb, int StartIndex) ExtractHourlyMetadata(HourlyForecastDTO? hourly, DateTime now)
     {
         double precipProb = 0.0;
@@ -192,14 +194,13 @@ public sealed class WeatherService : IWeatherService
         return (precipProb, startIndex);
     }
 
-    // A-03: Hourly forecast items builder
     private List<HourlyForecastItem> BuildHourlyForecastItems(ApiResponseDTO dto, int startIndex)
     {
         var items = new List<HourlyForecastItem>();
         if (dto.Hourly == null || dto.Hourly.Time.Count == 0)
             return items;
 
-        int count = Math.Min(6, dto.Hourly.Time.Count - startIndex);
+        int count = Math.Min(HourlyForecastSlots, dto.Hourly.Time.Count - startIndex);
         for (int i = 0; i < count; i++)
         {
             int idx = startIndex + i;

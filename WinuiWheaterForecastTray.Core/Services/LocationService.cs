@@ -13,6 +13,8 @@ namespace WinuiWheaterForecastTray.Services;
 /// </summary>
 public sealed class LocationService : ILocationService
 {
+    // R-05: Named constants for accuracy and timeout
+    private const uint LocationAccuracyInMeters = 500;
     private static readonly TimeSpan GeopositionTimeout = TimeSpan.FromSeconds(5);
 
     /// <inheritdoc/>
@@ -34,7 +36,6 @@ public sealed class LocationService : ILocationService
             return null;
         }
 
-        // C-10: distinct log per failure mode so caller can diagnose without a discriminated result
         if (access == GeolocationAccessStatus.Denied)
         {
             System.Diagnostics.Debug.WriteLine("[LocationService] Location permission denied by user or policy.");
@@ -49,16 +50,13 @@ public sealed class LocationService : ILocationService
 
         try
         {
-            var geolocator = new Geolocator { DesiredAccuracyInMeters = 500 };
+            var geolocator = new Geolocator { DesiredAccuracyInMeters = LocationAccuracyInMeters };
 
-            // Hard 5-second timeout: at system startup the OS location service may not be ready yet
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeoutCts.CancelAfter(GeopositionTimeout);
 
             var position = await geolocator.GetGeopositionAsync().AsTask(timeoutCts.Token).ConfigureAwait(false);
 
-            // C-03: guard against a partial Geoposition returned by the OS.
-            // Coordinate and Point are reference types and can be null; Position is a struct.
             var coordinate = position?.Coordinate;
             var point = coordinate?.Point;
             if (point is null)
@@ -67,7 +65,7 @@ public sealed class LocationService : ILocationService
                 return null;
             }
 
-            var pos = point.Position; // BasicGeoposition is a struct — always accessible when point != null
+            var pos = point.Position;
             return (pos.Latitude, pos.Longitude);
         }
         catch (OperationCanceledException)

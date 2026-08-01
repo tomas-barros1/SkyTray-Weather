@@ -3,12 +3,16 @@ using WinuiWheaterForecastTray.Services.Interfaces;
 
 namespace WinuiWheaterForecastTray.Services;
 
-public class AutostartService : IAutostartService
+/// <summary>
+/// Service implementation for managing Windows autostart registry entries under HKCU\Software\Microsoft\Windows\CurrentVersion\Run.
+/// </summary>
+public sealed class AutostartService : IAutostartService
 {
     private const string AppName = "SkyTrayWeather";
     private const string LegacyAppName = "WinuiWheaterForecastTray";
     private const string RunRegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
+    /// <inheritdoc/>
     public bool IsAutostartEnabled()
     {
         try
@@ -29,6 +33,7 @@ public class AutostartService : IAutostartService
         return false;
     }
 
+    /// <inheritdoc/>
     public void SetAutostart(bool enable)
     {
         try

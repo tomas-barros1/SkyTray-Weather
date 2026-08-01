@@ -4,11 +4,15 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using WinuiWheaterForecastTray.Constants;
 using WinuiWheaterForecastTray.DTOs;
 using WinuiWheaterForecastTray.Services.Interfaces;
 
 namespace WinuiWheaterForecastTray.Services;
 
+/// <summary>
+/// Service implementation for reverse-geocoding coordinates to city/locality names via BigDataCloud API.
+/// </summary>
 public sealed class GeocodingService : IGeocodingService
 {
     private static readonly HttpClient DefaultHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
@@ -24,7 +28,7 @@ public sealed class GeocodingService : IGeocodingService
     {
         try
         {
-            var url = $"https://api.bigdatacloud.net/data/reverse-geocode-client?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&localityLanguage=en";
+            var url = $"{EndpointUrls.BigDataCloudReverseGeocode}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&localityLanguage=en";
             var result = await _httpClient.GetFromJsonAsync<BigDataCloudGeocodeResponse>(url, cancellationToken).ConfigureAwait(false);
 
             if (result != null)
