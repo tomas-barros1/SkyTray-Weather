@@ -124,5 +124,79 @@ public class WeatherServiceTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*No current weather data*", because: "silent default is worse than a clear failure signal");
     }
-}
 
+    // P-01: all three HTTP calls (weather, AQI, geocoding) must be issued concurrently.
+    // With a 2s artificial delay on each, total time must be closer to 2s than 6s.
+    [Fact]
+    public async Task GetForecastAsync_ThreeServices_AreCalledConcurrently()
+    {
+        const int DelayMs = 2000;
+
+        var mockApi      = new Mock<IApiService>();
+        var mockLocation = new Mock<ILocationService>();
+        var mockGeocoding = new Mock<IGeocodingService>();
+        var mockAqi      = new Mock<IAirQualityService>();
+        var i18n         = new I18nService("en-US");
+
+        mockLocation.Setup(l => l.GetLocationAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((-23.5505, -46.6333));
+
+        mockGeocoding.Setup(g => g.GetCityNameAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .Returns(async (double _, double _, CancellationToken ct) =>
+            {
+                await Task.Delay(DelayMs, ct);
+                return (string?)"São Paulo";
+            });
+
+        mockAqi.Setup(a => a.GetUsAqiAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .Returns(async (double _, double _, CancellationToken ct) =>
+            {
+                await Task.Delay(DelayMs, ct);
+                return 25.0;
+            });
+
+        var dto = new ApiResponseDTO
+        {
+            Latitude  = -23.5505,
+            Longitude = -46.6333,
+            Current = new CurrentWeatherDTO
+            {
+                Time               = "2026-07-31T13:00",
+                Temperature2m      = 22.0,
+                ApparentTemperature = 24.0,
+                WeatherCode        = 0,
+                RelativeHumidity2m = 68.0,
+                WindSpeed10m       = 12.0,
+                IsDay              = 1
+            },
+            Hourly = new HourlyForecastDTO
+            {
+                Time = new System.Collections.Generic.List<string>
+                    { "2026-07-31T13:00","2026-07-31T14:00","2026-07-31T15:00",
+                      "2026-07-31T16:00","2026-07-31T17:00","2026-07-31T18:00","2026-07-31T19:00" },
+                Temperature2m           = new System.Collections.Generic.List<double> { 23,24,22,21,21,20,19 },
+                PrecipitationProbability = new System.Collections.Generic.List<double> { 0,10,80,75,20,0,0 },
+                WeatherCode             = new System.Collections.Generic.List<int> { 0,1,61,61,2,0,0 },
+                IsDay                   = new System.Collections.Generic.List<int> { 1,1,1,1,1,0,0 }
+            }
+        };
+
+        mockApi.Setup(a => a.GetWeatherDataAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .Returns(async (double _, double _, CancellationToken ct) =>
+            {
+                await Task.Delay(DelayMs, ct);
+                return dto;
+            });
+
+        var service = new WeatherService(mockApi.Object, mockLocation.Object, mockGeocoding.Object,
+            null, i18n, mockAqi.Object);
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var result = await service.GetForecastAsync();
+        sw.Stop();
+
+        result.Should().NotBeNull();
+        sw.Elapsed.TotalMilliseconds.Should().BeLessThan(DelayMs * 2.5,
+            because: "three concurrent 2s tasks must complete in ~2s, not ~6s");
+    }
+}
