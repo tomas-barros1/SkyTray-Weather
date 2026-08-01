@@ -14,14 +14,14 @@ Three .NET projects, no `*.sln` (only the XML-format `WinuiWheaterForecastTray.s
 
 All target `net8.0-windows10.0.19041.0` with `<Nullable>enable</Nullable>`. UI app is unpackaged (`WindowsPackageType=None`).
 
-## Solution-file quirk (load-bearing)
+## Solution File
 
-`WinuiWheaterForecastTray.slnx` lists **only** the UI project. The Core and Tests projects are NOT in the solution — they are pulled in via `<ProjectReference>` from their consumers. Always invoke commands against the csproj path, not the slnx, when you need Core or Tests:
+`WinuiWheaterForecastTray.slnx` includes all three projects (`WinuiWheaterForecastTray.Core`, `WinuiWheaterForecastTray`, `WinuiWheaterForecastTray.Tests`). Build, test, and publish commands:
 
 ```powershell
 dotnet restore WinuiWheaterForecastTray.slnx
-dotnet test  WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj
-dotnet build WinuiWheaterForecastTray/WinuiWheaterForecastTray.csproj
+dotnet build   WinuiWheaterForecastTray.slnx -p:Platform=x64
+dotnet test    WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj -c Release
 dotnet publish WinuiWheaterForecastTray/WinuiWheaterForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
 ```
 
