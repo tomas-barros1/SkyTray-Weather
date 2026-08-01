@@ -19,9 +19,9 @@ public sealed class WeatherService : IWeatherService
 
     // R-01 / R-05: Named constants for fallback values
     private const string DefaultSunriseTime = "05:55";
-    private const string DefaultSunsetTime  = "17:30";
-    private const double DefaultUvIndexMax  = 3.0;
-    private const int HourlyForecastSlots   = 6;
+    private const string DefaultSunsetTime = "17:30";
+    private const double DefaultUvIndexMax = 3.0;
+    private const int HourlyForecastSlots = 6;
 
     private readonly IApiService _apiService;
     private readonly IGeocodingService _geocodingService;
@@ -92,8 +92,8 @@ public sealed class WeatherService : IWeatherService
     private async Task<(ApiResponseDTO dto, double aqi, string? cityName)> FetchAllAsync(double lat, double lon, CancellationToken cancellationToken)
     {
         var weatherTask = _apiService.GetWeatherDataAsync(lat, lon, cancellationToken);
-        var aqiTask     = _airQualityService.GetUsAqiAsync(lat, lon, cancellationToken);
-        var cityTask    = _geocodingService.GetCityNameAsync(lat, lon, cancellationToken);
+        var aqiTask = _airQualityService.GetUsAqiAsync(lat, lon, cancellationToken);
+        var cityTask = _geocodingService.GetCityNameAsync(lat, lon, cancellationToken);
 
         await Task.WhenAll(weatherTask, aqiTask, cityTask).ConfigureAwait(false);
 
@@ -133,29 +133,29 @@ public sealed class WeatherService : IWeatherService
         string formattedDate = now.ToString("dddd, dd/MM", _i18nService.CurrentFormatProvider);
 
         string sunriseTime = dto.Daily?.Sunrise.Count > 0 ? FormatTime(dto.Daily.Sunrise[0]) : DefaultSunriseTime;
-        string sunsetTime  = dto.Daily?.Sunset.Count  > 0 ? FormatTime(dto.Daily.Sunset[0])  : DefaultSunsetTime;
-        double uvIndexMax  = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : DefaultUvIndexMax;
+        string sunsetTime = dto.Daily?.Sunset.Count > 0 ? FormatTime(dto.Daily.Sunset[0]) : DefaultSunsetTime;
+        double uvIndexMax = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : DefaultUvIndexMax;
 
         return new CurrentWeatherInfo
         {
-            CityName              = displayCityName,
-            DateString            = formattedDate,
-            Temperature           = dto.Current.Temperature2m,
-            ApparentTemperature   = dto.Current.ApparentTemperature,
-            WeatherCode           = dto.Current.WeatherCode,
-            ConditionText         = condition,
-            Emoji                 = emoji,
-            Humidity              = dto.Current.RelativeHumidity2m,
-            WindSpeed             = dto.Current.WindSpeed10m,
-            CloudCover            = dto.Current.CloudCover,
-            SurfacePressure       = dto.Current.SurfacePressure,
+            CityName = displayCityName,
+            DateString = formattedDate,
+            Temperature = dto.Current.Temperature2m,
+            ApparentTemperature = dto.Current.ApparentTemperature,
+            WeatherCode = dto.Current.WeatherCode,
+            ConditionText = condition,
+            Emoji = emoji,
+            Humidity = dto.Current.RelativeHumidity2m,
+            WindSpeed = dto.Current.WindSpeed10m,
+            CloudCover = dto.Current.CloudCover,
+            SurfacePressure = dto.Current.SurfacePressure,
             PrecipitationProbability = precipProb,
-            AirQualityText        = _i18nService.GetAirQualityDescription(aqi),
-            UvIndexText           = _i18nService.GetUvDescription(uvIndexMax),
-            SunriseTime           = sunriseTime,
-            SunsetTime            = sunsetTime,
-            IsDay                 = isDay,
-            CustomSummaryText     = summary
+            AirQualityText = _i18nService.GetAirQualityDescription(aqi),
+            UvIndexText = _i18nService.GetUvDescription(uvIndexMax),
+            SunriseTime = sunriseTime,
+            SunsetTime = sunsetTime,
+            IsDay = isDay,
+            CustomSummaryText = summary
         };
     }
 
@@ -168,7 +168,7 @@ public sealed class WeatherService : IWeatherService
         if (hourly != null)
         {
             bool precipFound = false;
-            bool startFound  = false;
+            bool startFound = false;
 
             for (int i = 0; i < hourly.Time.Count; i++)
             {
@@ -204,21 +204,21 @@ public sealed class WeatherService : IWeatherService
         for (int i = 0; i < count; i++)
         {
             int idx = startIndex + i;
-            string rawTime      = dto.Hourly.Time[idx];
-            double temp         = idx < dto.Hourly.Temperature2m.Count ? dto.Hourly.Temperature2m[idx] : 0;
-            double rainChance   = idx < dto.Hourly.PrecipitationProbability.Count ? dto.Hourly.PrecipitationProbability[idx] : 0;
-            int code            = idx < dto.Hourly.WeatherCode.Count ? dto.Hourly.WeatherCode[idx] : dto.Current?.WeatherCode ?? 0;
-            bool isDayHourly    = idx < dto.Hourly.IsDay.Count ? (dto.Hourly.IsDay[idx] == 1) : true;
+            string rawTime = dto.Hourly.Time[idx];
+            double temp = idx < dto.Hourly.Temperature2m.Count ? dto.Hourly.Temperature2m[idx] : 0;
+            double rainChance = idx < dto.Hourly.PrecipitationProbability.Count ? dto.Hourly.PrecipitationProbability[idx] : 0;
+            int code = idx < dto.Hourly.WeatherCode.Count ? dto.Hourly.WeatherCode[idx] : dto.Current?.WeatherCode ?? 0;
+            bool isDayHourly = idx < dto.Hourly.IsDay.Count ? (dto.Hourly.IsDay[idx] == 1) : true;
 
             var (hourlyEmoji, _) = _i18nService.GetWeatherCondition(code, isDayHourly);
 
             items.Add(new HourlyForecastItem
             {
-                Time          = rawTime,
+                Time = rawTime,
                 FormattedTime = FormatTime(rawTime),
-                Temperature   = temp,
-                Emoji         = hourlyEmoji,
-                RainChance    = rainChance
+                Temperature = temp,
+                Emoji = hourlyEmoji,
+                RainChance = rainChance
             });
         }
 

@@ -51,9 +51,9 @@ public class IpLocationServiceTests
         {
             return call++ == 0
                 ? new System.Net.Http.HttpResponseMessage(HttpStatusCode.OK)
-                  { Content = new System.Net.Http.StringContent(errorJson, System.Text.Encoding.UTF8, "application/json") }
+                { Content = new System.Net.Http.StringContent(errorJson, System.Text.Encoding.UTF8, "application/json") }
                 : new System.Net.Http.HttpResponseMessage(HttpStatusCode.OK)
-                  { Content = new System.Net.Http.StringContent(fallbackErrorJson, System.Text.Encoding.UTF8, "application/json") };
+                { Content = new System.Net.Http.StringContent(fallbackErrorJson, System.Text.Encoding.UTF8, "application/json") };
         });
         var service = new IpLocationService(new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) });
 

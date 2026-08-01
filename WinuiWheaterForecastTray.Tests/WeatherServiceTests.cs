@@ -132,11 +132,11 @@ public class WeatherServiceTests
     {
         const int DelayMs = 2000;
 
-        var mockApi      = new Mock<IApiService>();
+        var mockApi = new Mock<IApiService>();
         var mockLocation = new Mock<ILocationService>();
         var mockGeocoding = new Mock<IGeocodingService>();
-        var mockAqi      = new Mock<IAirQualityService>();
-        var i18n         = new I18nService("en-US");
+        var mockAqi = new Mock<IAirQualityService>();
+        var i18n = new I18nService("en-US");
 
         mockLocation.Setup(l => l.GetLocationAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync((-23.5505, -46.6333));
@@ -157,27 +157,27 @@ public class WeatherServiceTests
 
         var dto = new ApiResponseDTO
         {
-            Latitude  = -23.5505,
+            Latitude = -23.5505,
             Longitude = -46.6333,
             Current = new CurrentWeatherDTO
             {
-                Time               = "2026-07-31T13:00",
-                Temperature2m      = 22.0,
+                Time = "2026-07-31T13:00",
+                Temperature2m = 22.0,
                 ApparentTemperature = 24.0,
-                WeatherCode        = 0,
+                WeatherCode = 0,
                 RelativeHumidity2m = 68.0,
-                WindSpeed10m       = 12.0,
-                IsDay              = 1
+                WindSpeed10m = 12.0,
+                IsDay = 1
             },
             Hourly = new HourlyForecastDTO
             {
                 Time = new System.Collections.Generic.List<string>
                     { "2026-07-31T13:00","2026-07-31T14:00","2026-07-31T15:00",
                       "2026-07-31T16:00","2026-07-31T17:00","2026-07-31T18:00","2026-07-31T19:00" },
-                Temperature2m           = new System.Collections.Generic.List<double> { 23,24,22,21,21,20,19 },
-                PrecipitationProbability = new System.Collections.Generic.List<double> { 0,10,80,75,20,0,0 },
-                WeatherCode             = new System.Collections.Generic.List<int> { 0,1,61,61,2,0,0 },
-                IsDay                   = new System.Collections.Generic.List<int> { 1,1,1,1,1,0,0 }
+                Temperature2m = new System.Collections.Generic.List<double> { 23, 24, 22, 21, 21, 20, 19 },
+                PrecipitationProbability = new System.Collections.Generic.List<double> { 0, 10, 80, 75, 20, 0, 0 },
+                WeatherCode = new System.Collections.Generic.List<int> { 0, 1, 61, 61, 2, 0, 0 },
+                IsDay = new System.Collections.Generic.List<int> { 1, 1, 1, 1, 1, 0, 0 }
             }
         };
 
