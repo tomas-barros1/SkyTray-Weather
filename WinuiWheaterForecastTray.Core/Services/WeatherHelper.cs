@@ -2,24 +2,27 @@ namespace WinuiWheaterForecastTray.Services;
 
 public static class WeatherHelper
 {
-    public static (string Emoji, string Description) GetWeatherCondition(int weatherCode, bool isDay = true)
+    /// <summary>
+    /// Single source of truth for WMO weather code mapping to emoji, translation key, and default English description.
+    /// </summary>
+    public static (string Emoji, string Key, string Description) GetWeatherCondition(int weatherCode, bool isDay = true)
     {
         return weatherCode switch
         {
-            0 => isDay ? ("☀️", "Sunny") : ("🌙", "Clear"),
-            1 => isDay ? ("🌤️", "Mainly Clear") : ("🌙", "Mainly Clear"),
-            2 => isDay ? ("⛅", "Partly Cloudy") : ("☁️", "Partly Cloudy"),
-            3 => ("☁️", "Overcast"),
-            45 or 48 => ("🌫️", "Foggy"),
-            51 or 53 or 55 => ("🌧️", "Drizzle"),
-            56 or 57 => ("🌧️", "Freezing Drizzle"),
-            61 or 63 or 65 => ("🌧️", "Rain"),
-            66 or 67 => ("🌧️", "Freezing Rain"),
-            71 or 73 or 75 or 77 => ("❄️", "Snow"),
-            80 or 81 or 82 => ("🌧️", "Rain Showers"),
-            85 or 86 => ("❄️", "Snow Showers"),
-            95 or 96 or 99 => ("⛈️", "Thunderstorm"),
-            _ => isDay ? ("☀️", "Clear") : ("🌙", "Clear")
+            0 => isDay ? ("☀️", "Condition_Sunny", "Sunny") : ("🌙", "Condition_Clear", "Clear"),
+            1 => ("🌤️", "Condition_MainlyClear", "Mainly Clear"),
+            2 => ("⛅", "Condition_PartlyCloudy", "Partly Cloudy"),
+            3 => ("☁️", "Condition_Overcast", "Overcast"),
+            45 or 48 => ("🌫️", "Condition_Foggy", "Foggy"),
+            51 or 53 or 55 => ("🌧️", "Condition_Drizzle", "Drizzle"),
+            56 or 57 => ("🌧️", "Condition_FreezingDrizzle", "Freezing Drizzle"),
+            61 or 63 or 65 => ("🌧️", "Condition_Rain", "Rain"),
+            66 or 67 => ("🌧️", "Condition_FreezingRain", "Freezing Rain"),
+            71 or 73 or 75 or 77 => ("❄️", "Condition_Snow", "Snow"),
+            80 or 81 or 82 => ("🌧️", "Condition_RainShowers", "Rain Showers"),
+            85 or 86 => ("❄️", "Condition_SnowShowers", "Snow Showers"),
+            95 or 96 or 99 => ("⛈️", "Condition_Thunderstorm", "Thunderstorm"),
+            _ => isDay ? ("☀️", "Condition_Sunny", "Sunny") : ("🌙", "Condition_Clear", "Clear")
         };
     }
 

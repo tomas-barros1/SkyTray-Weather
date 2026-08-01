@@ -23,9 +23,9 @@ public class SettingsService : ISettingsService
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Silence registry exceptions
+            DebugLog.Swallowed(typeof(SettingsService), ex, "GetRefreshIntervalMinutes failed");
         }
         return DefaultInterval;
     }
@@ -40,9 +40,9 @@ public class SettingsService : ISettingsService
                 key?.SetValue(RefreshIntervalKey, minutes);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Silence registry write exceptions
+            DebugLog.Swallowed(typeof(SettingsService), ex, "SetRefreshIntervalMinutes failed");
         }
     }
 }

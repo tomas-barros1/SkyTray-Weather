@@ -36,8 +36,7 @@ public sealed class GeocodingService : IGeocodingService
         }
         catch (Exception ex)
         {
-            // C-09: return null on failure — do not return a hardcoded city that was never geocoded
-            System.Diagnostics.Debug.WriteLine($"[GeocodingService] Reverse-geocoding failed: {ex.Message}");
+            DebugLog.Swallowed(typeof(GeocodingService), ex, "Reverse-geocoding failed");
         }
 
         return null;

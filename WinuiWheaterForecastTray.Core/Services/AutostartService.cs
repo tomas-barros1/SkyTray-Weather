@@ -1,8 +1,9 @@
 using System;
+using WinuiWheaterForecastTray.Services.Interfaces;
 
 namespace WinuiWheaterForecastTray.Services;
 
-public class AutostartService : Interfaces.IAutostartService
+public class AutostartService : IAutostartService
 {
     private const string AppName = "SkyTrayWeather";
     private const string LegacyAppName = "WinuiWheaterForecastTray";
@@ -21,9 +22,9 @@ public class AutostartService : Interfaces.IAutostartService
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Silence permission/registry exceptions
+            DebugLog.Swallowed(typeof(AutostartService), ex, "IsAutostartEnabled check failed");
         }
         return false;
     }
@@ -42,7 +43,6 @@ public class AutostartService : Interfaces.IAutostartService
                         string? exePath = Environment.ProcessPath;
                         if (!string.IsNullOrEmpty(exePath))
                         {
-                            // C-11: guard against a path that contains a literal '"' which would corrupt the registry value
                             if (exePath.Contains('"'))
                                 throw new ArgumentException("Process path must not contain double-quote characters.", nameof(exePath));
 
@@ -57,9 +57,9 @@ public class AutostartService : Interfaces.IAutostartService
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Silence registry write exceptions
+            DebugLog.Swallowed(typeof(AutostartService), ex, "SetAutostart write failed");
         }
     }
 }

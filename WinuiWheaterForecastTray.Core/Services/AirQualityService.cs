@@ -30,9 +30,9 @@ public sealed class AirQualityService : IAirQualityService
                 return response.Current.UsAqi;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Graceful fallback if air quality API is unreachable
+            DebugLog.Swallowed(typeof(AirQualityService), ex, "AQI fetch failed, defaulting to 42.0");
         }
 
         return 42.0; // Default Good / Razoável AQI

@@ -13,6 +13,10 @@ public sealed class I18nService : II18nService
 
     public string CurrentCulture { get; }
 
+    public IFormatProvider CurrentFormatProvider => CultureInfo.GetCultureInfo(
+        CurrentCulture.StartsWith("pt", StringComparison.OrdinalIgnoreCase) ? "pt-BR" : "en-US"
+    );
+
     public I18nService(string? localeOverride = null)
     {
         var culture = localeOverride ?? CultureInfo.CurrentUICulture.Name;
@@ -57,9 +61,9 @@ public sealed class I18nService : II18nService
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Graceful fallback to default values
+            DebugLog.Swallowed(typeof(I18nService), ex, "Failed to load locale translations, using defaults");
         }
     }
 
@@ -74,26 +78,8 @@ public sealed class I18nService : II18nService
 
     public (string Emoji, string Description) GetWeatherCondition(int weatherCode, bool isDay = true)
     {
-        string key = weatherCode switch
-        {
-            0 => isDay ? "Condition_Sunny" : "Condition_Clear",
-            1 => "Condition_MainlyClear",
-            2 => "Condition_PartlyCloudy",
-            3 => "Condition_Overcast",
-            45 or 48 => "Condition_Foggy",
-            51 or 53 or 55 => "Condition_Drizzle",
-            56 or 57 => "Condition_FreezingDrizzle",
-            61 or 63 or 65 => "Condition_Rain",
-            66 or 67 => "Condition_FreezingRain",
-            71 or 73 or 75 or 77 => "Condition_Snow",
-            80 or 81 or 82 => "Condition_RainShowers",
-            85 or 86 => "Condition_SnowShowers",
-            95 or 96 or 99 => "Condition_Thunderstorm",
-            _ => isDay ? "Condition_Sunny" : "Condition_Clear"
-        };
-
-        // C-07: single call — was called twice, discarding one tuple each time
-        var (defaultEmoji, defaultDescription) = WeatherHelper.GetWeatherCondition(weatherCode, isDay);
+        // A-01: Single source of truth in WeatherHelper returns (Emoji, Key, Description)
+        var (defaultEmoji, key, defaultDescription) = WeatherHelper.GetWeatherCondition(weatherCode, isDay);
         string desc = GetString(key, defaultDescription);
         return (defaultEmoji, desc);
     }

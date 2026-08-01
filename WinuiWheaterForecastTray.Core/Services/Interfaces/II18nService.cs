@@ -1,8 +1,11 @@
+using System;
+
 namespace WinuiWheaterForecastTray.Services.Interfaces;
 
 public interface II18nService
 {
     string CurrentCulture { get; }
+    IFormatProvider CurrentFormatProvider { get; }
     string GetString(string key, string fallback = "");
     (string Emoji, string Description) GetWeatherCondition(int weatherCode, bool isDay = true);
     string GetAirQualityDescription(double usAqi);
