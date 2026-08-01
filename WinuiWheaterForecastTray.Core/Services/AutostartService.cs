@@ -42,6 +42,10 @@ public class AutostartService : Interfaces.IAutostartService
                         string? exePath = Environment.ProcessPath;
                         if (!string.IsNullOrEmpty(exePath))
                         {
+                            // C-11: guard against a path that contains a literal '"' which would corrupt the registry value
+                            if (exePath.Contains('"'))
+                                throw new ArgumentException("Process path must not contain double-quote characters.", nameof(exePath));
+
                             key.SetValue(AppName, $"\"{exePath}\"");
                         }
                     }

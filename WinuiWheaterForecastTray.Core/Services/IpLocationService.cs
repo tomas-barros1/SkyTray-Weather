@@ -20,29 +20,44 @@ public sealed class IpLocationService : ILocationService
 
     public async Task<(double Latitude, double Longitude)?> GetLocationAsync(CancellationToken cancellationToken = default)
     {
+        // Primary: ipapi.co — checks the error field (C-02) instead of the (0,0) sentinel
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<IpApiResponseDTO>("https://ipapi.co/json/", cancellationToken).ConfigureAwait(false);
-            if (response != null && response.Latitude != 0 && response.Longitude != 0)
+            var response = await _httpClient
+                .GetFromJsonAsync<IpApiResponseDTO>("https://ipapi.co/json/", cancellationToken)
+                .ConfigureAwait(false);
+
+            if (response is { Error: false })
             {
                 return (response.Latitude, response.Longitude);
             }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[IpLocationService] ipapi.co reported error: {response?.Reason ?? "unknown"}");
         }
-        catch
+        catch (Exception ex)
         {
-            // Try secondary IP geolocation fallback
-            try
+            System.Diagnostics.Debug.WriteLine($"[IpLocationService] ipapi.co request failed: {ex.Message}");
+        }
+
+        // Fallback: ip-api.com — a proper IP-geolocation endpoint (C-01: replaces wrong reverse-geocode URL)
+        try
+        {
+            var fallback = await _httpClient
+                .GetFromJsonAsync<IpApiComFallbackDTO>("http://ip-api.com/json/", cancellationToken)
+                .ConfigureAwait(false);
+
+            if (fallback is { Status: "success" })
             {
-                var fallback = await _httpClient.GetFromJsonAsync<BigDataCloudIpResponseDTO>("https://api.bigdatacloud.net/data/reverse-geocode-client", cancellationToken).ConfigureAwait(false);
-                if (fallback != null && fallback.Latitude != 0 && fallback.Longitude != 0)
-                {
-                    return (fallback.Latitude, fallback.Longitude);
-                }
+                return (fallback.Lat, fallback.Lon);
             }
-            catch
-            {
-                // Silence exception
-            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[IpLocationService] ip-api.com fallback returned non-success status: {fallback?.Status}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[IpLocationService] ip-api.com fallback failed: {ex.Message}");
         }
 
         return null;

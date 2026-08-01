@@ -19,7 +19,8 @@ public sealed class GeocodingService : IGeocodingService
         _httpClient = httpClient ?? DefaultHttpClient;
     }
 
-    public async Task<string> GetCityNameAsync(double latitude, double longitude, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task<string?> GetCityNameAsync(double latitude, double longitude, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -33,11 +34,12 @@ public sealed class GeocodingService : IGeocodingService
                 if (!string.IsNullOrWhiteSpace(result.PrincipalSubdivision)) return result.PrincipalSubdivision;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Fallback to default
+            // C-09: return null on failure — do not return a hardcoded city that was never geocoded
+            System.Diagnostics.Debug.WriteLine($"[GeocodingService] Reverse-geocoding failed: {ex.Message}");
         }
 
-        return "São Paulo";
+        return null;
     }
 }

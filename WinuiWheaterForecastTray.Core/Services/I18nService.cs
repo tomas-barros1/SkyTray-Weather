@@ -24,6 +24,8 @@ public sealed class I18nService : II18nService
 
     private static string ResolveLocaleFileName(string culture) => culture switch
     {
+        // pt-PT intentionally maps to pt_BR.json until a dedicated pt_PT.json resource is added.
+        // When pt_PT.json is created, add: string c when c.Equals("pt-PT", OrdinalIgnoreCase) => "pt_PT.json",
         string c when c.StartsWith("pt", StringComparison.OrdinalIgnoreCase) => "pt_BR.json",
         string c when c.StartsWith("es", StringComparison.OrdinalIgnoreCase) => "es_ES.json",
         string c when c.StartsWith("fr", StringComparison.OrdinalIgnoreCase) => "fr_FR.json",
@@ -90,10 +92,10 @@ public sealed class I18nService : II18nService
             _ => isDay ? "Condition_Sunny" : "Condition_Clear"
         };
 
-        var (emoji, _) = WeatherHelper.GetWeatherCondition(weatherCode, isDay);
-        string desc = GetString(key, WeatherHelper.GetWeatherCondition(weatherCode, isDay).Description);
-
-        return (emoji, desc);
+        // C-07: single call — was called twice, discarding one tuple each time
+        var (defaultEmoji, defaultDescription) = WeatherHelper.GetWeatherCondition(weatherCode, isDay);
+        string desc = GetString(key, defaultDescription);
+        return (defaultEmoji, desc);
     }
 
     public string GetAirQualityDescription(double usAqi) => usAqi switch

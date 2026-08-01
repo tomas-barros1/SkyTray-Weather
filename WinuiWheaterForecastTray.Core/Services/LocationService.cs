@@ -18,30 +18,57 @@ public sealed class LocationService : ILocationService
     /// <inheritdoc/>
     public async Task<(double Latitude, double Longitude)?> GetLocationAsync(CancellationToken cancellationToken = default)
     {
+        GeolocationAccessStatus access;
         try
         {
-            var access = await Geolocator.RequestAccessAsync().AsTask(cancellationToken).ConfigureAwait(false);
+            access = await Geolocator.RequestAccessAsync().AsTask(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            System.Diagnostics.Debug.WriteLine("[LocationService] RequestAccessAsync cancelled.");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LocationService] RequestAccessAsync failed: {ex.Message}");
+            return null;
+        }
 
-            if (access != GeolocationAccessStatus.Allowed)
-                return null;
+        // C-10: distinct log per failure mode so caller can diagnose without a discriminated result
+        if (access == GeolocationAccessStatus.Denied)
+        {
+            System.Diagnostics.Debug.WriteLine("[LocationService] Location permission denied by user or policy.");
+            return null;
+        }
 
-            var geolocator = new Geolocator
-            {
-                DesiredAccuracyInMeters = 500
-            };
+        if (access == GeolocationAccessStatus.Unspecified)
+        {
+            System.Diagnostics.Debug.WriteLine("[LocationService] Location access status unspecified.");
+            return null;
+        }
 
-            // Use a combined CancellationToken with a hard 5-second timeout.
-            // At system startup the OS location service may not be ready yet,
-            // and GetGeopositionAsync can stall indefinitely without a timeout.
+        try
+        {
+            var geolocator = new Geolocator { DesiredAccuracyInMeters = 500 };
+
+            // Hard 5-second timeout: at system startup the OS location service may not be ready yet
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeoutCts.CancelAfter(GeopositionTimeout);
 
             var position = await geolocator.GetGeopositionAsync().AsTask(timeoutCts.Token).ConfigureAwait(false);
 
-            return (
-                position.Coordinate.Point.Position.Latitude,
-                position.Coordinate.Point.Position.Longitude
-            );
+            // C-03: guard against a partial Geoposition returned by the OS.
+            // Coordinate and Point are reference types and can be null; Position is a struct.
+            var coordinate = position?.Coordinate;
+            var point = coordinate?.Point;
+            if (point is null)
+            {
+                System.Diagnostics.Debug.WriteLine("[LocationService] Geoposition returned null coordinate chain.");
+                return null;
+            }
+
+            var pos = point.Position; // BasicGeoposition is a struct — always accessible when point != null
+            return (pos.Latitude, pos.Longitude);
         }
         catch (OperationCanceledException)
         {
@@ -50,7 +77,7 @@ public sealed class LocationService : ILocationService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocationService] Native OS location request failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[LocationService] GetGeopositionAsync failed: {ex.Message}");
             return null;
         }
     }

@@ -25,7 +25,7 @@ public class WeatherServiceTests
             .ReturnsAsync((-23.5505, -46.6333));
 
         mockGeocoding.Setup(g => g.GetCityNameAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("São Paulo");
+            .ReturnsAsync((string?)"São Paulo");
 
         var dto = new ApiResponseDTO
         {
@@ -97,4 +97,32 @@ public class WeatherServiceTests
         // Hourly slot at 15:00 (index=2) has 80% rain chance
         forecastData.HourlyForecast[2].RainChance.Should().Be(80);
     }
+
+    // C-05: WeatherService must throw when dto.Current is null instead of silently returning defaults
+    [Fact]
+    public async Task GetForecastAsync_NullCurrentWeather_ThrowsInvalidOperationException()
+    {
+        var mockApi = new Mock<IApiService>();
+        var mockLocation = new Mock<ILocationService>();
+        var mockGeocoding = new Mock<IGeocodingService>();
+        var i18n = new I18nService("en-US");
+
+        mockLocation.Setup(l => l.GetLocationAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((-23.5505, -46.6333));
+        mockGeocoding.Setup(g => g.GetCityNameAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        // API returns a DTO with null Current
+        var dto = new ApiResponseDTO { Latitude = -23.5505, Longitude = -46.6333, Current = null };
+        mockApi.Setup(a => a.GetWeatherDataAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(dto);
+
+        var service = new WeatherService(mockApi.Object, mockLocation.Object, mockGeocoding.Object, null, i18n);
+
+        Func<Task> act = () => service.GetForecastAsync();
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*No current weather data*", because: "silent default is worse than a clear failure signal");
+    }
 }
+

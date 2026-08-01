@@ -60,92 +60,88 @@ public sealed class WeatherService : IWeatherService
             }
         }
 
-        string cityName = await _geocodingService.GetCityNameAsync(lat, lon, cancellationToken).ConfigureAwait(false);
+        string? cityName = await _geocodingService.GetCityNameAsync(lat, lon, cancellationToken).ConfigureAwait(false);
         var dto = await _apiService.GetWeatherDataAsync(lat, lon, cancellationToken).ConfigureAwait(false);
         double aqi = await _airQualityService.GetUsAqiAsync(lat, lon, cancellationToken).ConfigureAwait(false);
 
+        // C-05: throw instead of silently returning defaulted data when the API returns nothing
+        if (dto.Current is null)
+            throw new InvalidOperationException("No current weather data returned from Open-Meteo.");
+
+        // C-06: single source of truth for 'now' — derived from API response time, not local clock
+        DateTime now = DateTime.TryParse(dto.Current.Time, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedNow)
+            ? parsedNow
+            : DateTime.Now;
+
+        // C-09: cityName is now string? — use empty string as display fallback
+        string displayCityName = cityName ?? string.Empty;
+
         var result = new WeatherForecastData();
+        bool isDay = dto.Current.IsDay == 1;
+        var (emoji, condition) = _i18nService.GetWeatherCondition(dto.Current.WeatherCode, isDay);
 
-        if (dto.Current != null)
+        var summary = _i18nService.FormatSummaryText(
+            displayCityName,
+            emoji,
+            dto.Current.Temperature2m,
+            condition,
+            dto.Current.RelativeHumidity2m,
+            dto.Current.WindSpeed10m
+        );
+
+        var culture = new CultureInfo(_i18nService.CurrentCulture.StartsWith("pt", StringComparison.OrdinalIgnoreCase) ? "pt-BR" : "en-US");
+        string formattedDate = now.ToString("dddd, dd/MM", culture);
+
+        string sunriseTime = dto.Daily?.Sunrise.Count > 0 ? FormatTime(dto.Daily.Sunrise[0]) : "05:55";
+        string sunsetTime  = dto.Daily?.Sunset.Count  > 0 ? FormatTime(dto.Daily.Sunset[0])  : "17:30";
+        double uvIndexMax  = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : 3.0;
+
+        // C-06: use 'now' derived from dto.Current.Time for precip-prob hour lookup
+        double precipProb = 0.0;
+        if (dto.Hourly != null)
         {
-            bool isDay = dto.Current.IsDay == 1;
-            var (emoji, condition) = _i18nService.GetWeatherCondition(dto.Current.WeatherCode, isDay);
-
-            var summary = _i18nService.FormatSummaryText(
-                cityName,
-                emoji,
-                dto.Current.Temperature2m,
-                condition,
-                dto.Current.RelativeHumidity2m,
-                dto.Current.WindSpeed10m
-            );
-
-            // Format date string (e.g., "sexta-feira, 31/07")
-            var culture = new CultureInfo(_i18nService.CurrentCulture.StartsWith("pt", StringComparison.OrdinalIgnoreCase) ? "pt-BR" : "en-US");
-            string formattedDate = DateTime.Now.ToString("dddd, dd/MM", culture);
-
-            // Format sunrise / sunset
-            string sunriseTime = dto.Daily?.Sunrise.Count > 0 ? FormatTime(dto.Daily.Sunrise[0]) : "05:55";
-            string sunsetTime = dto.Daily?.Sunset.Count > 0 ? FormatTime(dto.Daily.Sunset[0]) : "17:30";
-
-            double uvIndexMax = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : 3.0;
-
-            DateTime targetTime = DateTime.TryParse(dto.Current.Time, CultureInfo.InvariantCulture, DateTimeStyles.None, out var currentDt) ? currentDt : DateTime.Now;
-
-            // Use precipitation probability from the current hour (hourly data) rather than the
-            // instantaneous 15-min precipitation accumulation (current.precipitation in mm),
-            // which is almost always 0.0 and was mislabeled as mm/h in the UI.
-            double precipProb = 0.0;
-            if (dto.Hourly != null)
+            for (int i = 0; i < dto.Hourly.Time.Count; i++)
             {
-                for (int i = 0; i < dto.Hourly.Time.Count; i++)
+                if (DateTime.TryParse(dto.Hourly.Time[i], CultureInfo.InvariantCulture, DateTimeStyles.None, out var hDt)
+                    && hDt.Date == now.Date && hDt.Hour == now.Hour)
                 {
-                    if (DateTime.TryParse(dto.Hourly.Time[i], CultureInfo.InvariantCulture, DateTimeStyles.None, out var hDt)
-                        && hDt.Date == targetTime.Date && hDt.Hour == targetTime.Hour)
-                    {
-                        precipProb = i < dto.Hourly.PrecipitationProbability.Count
-                            ? dto.Hourly.PrecipitationProbability[i]
-                            : 0.0;
-                        break;
-                    }
+                    precipProb = i < dto.Hourly.PrecipitationProbability.Count
+                        ? dto.Hourly.PrecipitationProbability[i]
+                        : 0.0;
+                    break;
                 }
             }
-
-            result.Current = new CurrentWeatherInfo
-            {
-                CityName = cityName,
-                DateString = formattedDate,
-                Temperature = dto.Current.Temperature2m,
-                ApparentTemperature = dto.Current.ApparentTemperature,
-                WeatherCode = dto.Current.WeatherCode,
-                ConditionText = condition,
-                Emoji = emoji,
-                Humidity = dto.Current.RelativeHumidity2m,
-                WindSpeed = dto.Current.WindSpeed10m,
-                CloudCover = dto.Current.CloudCover,
-                SurfacePressure = dto.Current.SurfacePressure,
-                PrecipitationProbability = precipProb,
-                AirQualityText = _i18nService.GetAirQualityDescription(aqi),
-                UvIndexText = _i18nService.GetUvDescription(uvIndexMax),
-                SunriseTime = sunriseTime,
-                SunsetTime = sunsetTime,
-                IsDay = isDay,
-                CustomSummaryText = summary
-            };
         }
+
+        result.Current = new CurrentWeatherInfo
+        {
+            CityName = displayCityName,
+            DateString = formattedDate,
+            Temperature = dto.Current.Temperature2m,
+            ApparentTemperature = dto.Current.ApparentTemperature,
+            WeatherCode = dto.Current.WeatherCode,
+            ConditionText = condition,
+            Emoji = emoji,
+            Humidity = dto.Current.RelativeHumidity2m,
+            WindSpeed = dto.Current.WindSpeed10m,
+            CloudCover = dto.Current.CloudCover,
+            SurfacePressure = dto.Current.SurfacePressure,
+            PrecipitationProbability = precipProb,
+            AirQualityText = _i18nService.GetAirQualityDescription(aqi),
+            UvIndexText = _i18nService.GetUvDescription(uvIndexMax),
+            SunriseTime = sunriseTime,
+            SunsetTime = sunsetTime,
+            IsDay = isDay,
+            CustomSummaryText = summary
+        };
 
         if (dto.Hourly != null && dto.Hourly.Time.Count > 0)
         {
             int startIndex = 0;
-            DateTime targetTime = DateTime.Now;
 
-            if (!string.IsNullOrEmpty(dto.Current?.Time) && DateTime.TryParse(dto.Current.Time, CultureInfo.InvariantCulture, DateTimeStyles.None, out var currentDt))
-            {
-                targetTime = currentDt;
-            }
-
+            // C-06: use same 'now' derived from dto.Current.Time throughout this call
             // If minutes > 0 (e.g., 13:56), target the upcoming hour (14:00)
-            DateTime nextHourTarget = targetTime.Minute > 0 ? targetTime.AddHours(1) : targetTime;
+            DateTime nextHourTarget = now.Minute > 0 ? now.AddHours(1) : now;
 
             for (int i = 0; i < dto.Hourly.Time.Count; i++)
             {
@@ -177,10 +173,10 @@ public sealed class WeatherService : IWeatherService
 
                 double temp = idx < dto.Hourly.Temperature2m.Count ? dto.Hourly.Temperature2m[idx] : 0;
                 double rainChance = idx < dto.Hourly.PrecipitationProbability.Count ? dto.Hourly.PrecipitationProbability[idx] : 0;
-                int code = idx < dto.Hourly.WeatherCode.Count ? dto.Hourly.WeatherCode[idx] : dto.Current?.WeatherCode ?? 0;
-                bool isDay = idx < dto.Hourly.IsDay.Count ? (dto.Hourly.IsDay[idx] == 1) : true;
+                int code = idx < dto.Hourly.WeatherCode.Count ? dto.Hourly.WeatherCode[idx] : dto.Current.WeatherCode;
+                bool isDayHourly = idx < dto.Hourly.IsDay.Count ? (dto.Hourly.IsDay[idx] == 1) : true;
 
-                var (hourlyEmoji, _) = _i18nService.GetWeatherCondition(code, isDay);
+                var (hourlyEmoji, _) = _i18nService.GetWeatherCondition(code, isDayHourly);
 
                 result.HourlyForecast.Add(new HourlyForecastItem
                 {
