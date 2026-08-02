@@ -106,7 +106,7 @@ Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray 
   - 🌡️ Temperature & Feels Like Temperature
   - ☁️ Cloud Cover (%)
   - 💧 Humidity (%)
-  - ⏲️ Surface Pressure (hPa)
+  - ⏲️ Sea Level Pressure (hPa)
   - 🌬️ Wind Speed (km/h)
   - ☔ Rain / Precipitation (mm/h)
   - 🍃 Air Quality Index (US AQI)

@@ -39,6 +39,7 @@ public class WeatherServiceTests
                 WeatherCode = 0,
                 RelativeHumidity2m = 68.0,
                 WindSpeed10m = 12.0,
+                PressureMsl = 1020.1,
                 IsDay = 1
             },
             Hourly = new HourlyForecastDTO
@@ -75,6 +76,7 @@ public class WeatherServiceTests
         forecastData.Current.ApparentTemperature.Should().Be(24.0);
         forecastData.Current.Humidity.Should().Be(68.0);
         forecastData.Current.WindSpeed.Should().Be(12.0);
+        forecastData.Current.Pressure.Should().Be(1020.1);
         forecastData.Current.Emoji.Should().Be("☀️");
         forecastData.Current.SummaryText.Should().Contain("São Paulo")
             .And.Contain("22°C")

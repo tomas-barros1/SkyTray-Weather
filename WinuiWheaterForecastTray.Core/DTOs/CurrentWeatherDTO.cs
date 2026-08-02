@@ -25,8 +25,8 @@ public class CurrentWeatherDTO
     [JsonPropertyName("cloud_cover")]
     public double CloudCover { get; set; }
 
-    [JsonPropertyName("surface_pressure")]
-    public double SurfacePressure { get; set; }
+    [JsonPropertyName("pressure_msl")]
+    public double PressureMsl { get; set; }
 
     [JsonPropertyName("precipitation")]
     public double Precipitation { get; set; }

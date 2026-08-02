@@ -37,8 +37,16 @@ public class CurrentWeatherInfo
     /// <summary>Cloud cover percentage (0–100 %).</summary>
     public double CloudCover { get; set; }
 
-    /// <summary>Surface pressure in hPa.</summary>
-    public double SurfacePressure { get; set; }
+    /// <summary>Sea-level pressure (MSL) in hPa.</summary>
+    public double Pressure { get; set; }
+
+    /// <summary>Legacy alias for <see cref="Pressure"/>.</summary>
+    [System.Obsolete("Use Pressure instead.")]
+    public double SurfacePressure
+    {
+        get => Pressure;
+        set => Pressure = value;
+    }
 
     /// <summary>Precipitation probability for the current hour (0–100 %).</summary>
     public double PrecipitationProbability { get; set; }

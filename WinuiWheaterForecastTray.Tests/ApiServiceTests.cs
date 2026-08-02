@@ -25,6 +25,9 @@ public class ApiServiceTests
                 ""weather_code"": 0,
                 ""relative_humidity_2m"": 68.0,
                 ""wind_speed_10m"": 12.0,
+                ""cloud_cover"": 15.0,
+                ""pressure_msl"": 1020.1,
+                ""precipitation"": 0.0,
                 ""is_day"": 1
             },
             ""hourly"": {
@@ -57,6 +60,9 @@ public class ApiServiceTests
         result.Current.WeatherCode.Should().Be(0);
         result.Current.RelativeHumidity2m.Should().Be(68.0);
         result.Current.WindSpeed10m.Should().Be(12.0);
+        result.Current.CloudCover.Should().Be(15.0);
+        result.Current.PressureMsl.Should().Be(1020.1);
+        result.Current.Precipitation.Should().Be(0.0);
         result.Current.IsDay.Should().Be(1);
 
         result.Hourly.Should().NotBeNull();
@@ -64,6 +70,43 @@ public class ApiServiceTests
         result.Hourly.Temperature2m.Should().ContainInOrder(22.4, 23.0);
         result.Hourly.PrecipitationProbability.Should().ContainInOrder(10.0, 20.0);
         result.Hourly.WeatherCode.Should().ContainInOrder(0, 1);
+    }
+
+    [Fact]
+    public async Task GetWeatherDataAsync_PressureMslAndCurrentFields_DeserializesCorrectly()
+    {
+        var jsonResponse = @"{
+            ""current"": {
+                ""temperature_2m"": 25.5,
+                ""relative_humidity_2m"": 62,
+                ""apparent_temperature"": 27.5,
+                ""pressure_msl"": 1020.1,
+                ""cloud_cover"": 19,
+                ""wind_speed_10m"": 11.8,
+                ""precipitation"": 0.0,
+                ""is_day"": 1,
+                ""weather_code"": 0
+            }
+        }";
+
+        var mockHandler = new MockHttpMessageHandler(req => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(jsonResponse, System.Text.Encoding.UTF8, "application/json")
+        });
+
+        var apiService = new ApiService(new HttpClient(mockHandler));
+        var result = await apiService.GetWeatherDataAsync(-12.26, -38.96);
+
+        result.Current.Should().NotBeNull();
+        result.Current!.Temperature2m.Should().Be(25.5);
+        result.Current.ApparentTemperature.Should().Be(27.5);
+        result.Current.RelativeHumidity2m.Should().Be(62.0);
+        result.Current.PressureMsl.Should().Be(1020.1);
+        result.Current.CloudCover.Should().Be(19.0);
+        result.Current.WindSpeed10m.Should().Be(11.8);
+        result.Current.Precipitation.Should().Be(0.0);
+        result.Current.IsDay.Should().Be(1);
+        result.Current.WeatherCode.Should().Be(0);
     }
 
     [Fact]

@@ -148,7 +148,7 @@ public sealed class WeatherService : IWeatherService
             Humidity = dto.Current.RelativeHumidity2m,
             WindSpeed = dto.Current.WindSpeed10m,
             CloudCover = dto.Current.CloudCover,
-            SurfacePressure = dto.Current.SurfacePressure,
+            Pressure = dto.Current.PressureMsl,
             PrecipitationProbability = precipProb,
             AirQualityText = _i18nService.GetAirQualityDescription(aqi),
             UvIndexText = _i18nService.GetUvDescription(uvIndexMax),
