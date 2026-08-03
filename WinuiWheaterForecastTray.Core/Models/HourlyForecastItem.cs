@@ -22,6 +22,12 @@ public class HourlyForecastItem
     /// <summary>Condition emoji icon (e.g. "🌧️").</summary>
     public string Emoji { get; set; } = string.Empty;
 
+    /// <summary>Localized weather condition text (e.g. "Céu Limpo").</summary>
+    public string ConditionText { get; set; } = string.Empty;
+
     /// <summary>Chance of rain percentage (0–100 %).</summary>
     public double RainChance { get; set; }
+
+    /// <summary>Tooltip text displayed when hovering over the hourly slot card.</summary>
+    public string TooltipText => $"{FormattedTime} — {ConditionText}\n{DisplayTemperature} ({Math.Round(RainChance)}% chuva)";
 }

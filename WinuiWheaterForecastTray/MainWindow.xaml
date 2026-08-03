@@ -172,7 +172,7 @@
 
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:HourlyForecastItem">
-                            <Border CornerRadius="10" Padding="4,6" Width="48" Margin="2,0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                            <Border CornerRadius="10" Padding="4,6" Width="48" Margin="2,0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" ToolTipService.ToolTip="{x:Bind TooltipText}">
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind FormattedTime}" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
                                     <TextBlock Text="{x:Bind Emoji}" FontSize="16" HorizontalAlignment="Center" Margin="0,2,0,2" />

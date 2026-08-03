@@ -87,6 +87,8 @@ public class WeatherServiceTests
         forecastData.HourlyForecast[0].FormattedTime.Should().Be("13:00");
         forecastData.HourlyForecast[0].Emoji.Should().Be("☀️");
         forecastData.HourlyForecast[0].DisplayTemperature.Should().Be("23°");
+        forecastData.HourlyForecast[0].ConditionText.Should().Be("Sunny");
+        forecastData.HourlyForecast[0].TooltipText.Should().Be("13:00 — Sunny\n23° (0% chuva)");
 
         forecastData.HourlyForecast[5].FormattedTime.Should().Be("18:00");
         forecastData.HourlyForecast[5].Emoji.Should().Be("🌙");

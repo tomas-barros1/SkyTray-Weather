@@ -210,7 +210,7 @@ public sealed class WeatherService : IWeatherService
             int code = idx < dto.Hourly.WeatherCode.Count ? dto.Hourly.WeatherCode[idx] : dto.Current?.WeatherCode ?? 0;
             bool isDayHourly = idx < dto.Hourly.IsDay.Count ? (dto.Hourly.IsDay[idx] == 1) : true;
 
-            var (hourlyEmoji, _) = _i18nService.GetWeatherCondition(code, isDayHourly);
+            var (hourlyEmoji, hourlyDesc) = _i18nService.GetWeatherCondition(code, isDayHourly);
 
             items.Add(new HourlyForecastItem
             {
@@ -218,6 +218,7 @@ public sealed class WeatherService : IWeatherService
                 FormattedTime = FormatTime(rawTime),
                 Temperature = temp,
                 Emoji = hourlyEmoji,
+                ConditionText = hourlyDesc,
                 RainChance = rainChance
             });
         }
