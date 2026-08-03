@@ -7,6 +7,11 @@ namespace WinuiWheaterForecastTray.Tray;
 public static class TrayVectorRenderer
 {
     private const int SmoothingModeAntiAlias = 4;
+    private const int CompositingModeSourceOver = 0;
+    private const int CompositingModeSourceCopy = 1;
+
+    [DllImport("gdiplus.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+    private static extern int GdipSetCompositingMode(IntPtr graphics, int compositingMode);
 
     [DllImport("gdiplus.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
     private static extern int GdipSetSmoothingMode(IntPtr graphics, int smoothingMode);
@@ -102,24 +107,25 @@ public static class TrayVectorRenderer
 
     private static void DrawMoon(IntPtr graphics)
     {
-        uint moonColor = 0xFFFFD54F;
-        uint starColor = 0xFFFFF59D;
+        uint moonColor = 0xFFFFD54F; // Bright warm yellow
+        uint starColor = 0xFFFFF59D; // Light yellow star
 
         GdipCreateSolidFill(moonColor, out IntPtr moonBrush);
         GdipCreateSolidFill(starColor, out IntPtr starBrush);
 
-        // Crescent moon polygon/ellipses
-        GdipFillEllipseI(graphics, moonBrush, 6, 6, 18, 18);
+        // 1. Base full moon circle
+        GdipFillEllipseI(graphics, moonBrush, 4, 4, 22, 22);
 
-        // Erase inner circle for crescent effect (transparent subtractive ellipse)
+        // 2. Cut out inner crescent using SourceCopy mode (replaces yellow pixels with transparent ARGB 0x00000000)
+        GdipSetCompositingMode(graphics, CompositingModeSourceCopy);
         GdipCreateSolidFill(0x00000000, out IntPtr clearBrush);
-        // Note: Using a offset circle with moon color background cut
-        GdipFillEllipseI(graphics, clearBrush, 11, 4, 15, 15);
+        GdipFillEllipseI(graphics, clearBrush, 10, 1, 20, 20);
         GdipDeleteBrush(clearBrush);
+        GdipSetCompositingMode(graphics, CompositingModeSourceOver);
 
-        // Stars
-        GdipFillEllipseI(graphics, starBrush, 23, 7, 3, 3);
-        GdipFillEllipseI(graphics, starBrush, 26, 16, 2, 2);
+        // 3. Draw stars in top-right
+        GdipFillEllipseI(graphics, starBrush, 23, 6, 3, 3);
+        GdipFillEllipseI(graphics, starBrush, 26, 15, 2, 2);
 
         GdipDeleteBrush(moonBrush);
         GdipDeleteBrush(starBrush);
