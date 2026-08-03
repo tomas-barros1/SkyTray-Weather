@@ -86,7 +86,7 @@ namespace WinuiWheaterForecastTray
             ApplyLocalizedStrings();
 
             _trayIconManager = new TrayIconManager(_i18nService);
-            _trayIconManager.Initialize(_hwnd, "☀️", _i18nService.GetString("FetchingData", "Weather Forecast — Fetching..."));
+            _trayIconManager.Initialize(_hwnd, "🔄", _i18nService.GetString("FetchingData", "Weather Forecast — Fetching..."));
             _trayIconManager.TrayIconClicked += TrayIconManager_TrayIconClicked;
             _trayIconManager.TrayIconHovered += TrayIconManager_TrayIconHovered;
             _trayIconManager.SettingsRequested += TrayIconManager_SettingsRequested;
@@ -213,6 +213,8 @@ namespace WinuiWheaterForecastTray
                 BtnRefresh.IsEnabled = false;
                 LoadingStack.Visibility = Visibility.Visible;
                 ContentGrid.Visibility = Visibility.Collapsed;
+
+                _trayIconManager?.Update("🔄", _i18nService.GetString("FetchingData", "Fetching weather data..."));
 
                 _currentForecast = await _weatherService.GetForecastAsync().ConfigureAwait(true);
 

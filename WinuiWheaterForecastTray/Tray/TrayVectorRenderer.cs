@@ -38,6 +38,9 @@ public static class TrayVectorRenderer
     private static extern int GdipFillPolygonI(IntPtr graphics, IntPtr brush, GdipPointI[] points, int count, int fillMode);
 
     [DllImport("gdiplus.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+    private static extern int GdipDrawArcI(IntPtr graphics, IntPtr pen, int x, int y, int width, int height, float startAngle, float sweepAngle);
+
+    [DllImport("gdiplus.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
     private static extern int GdipFillRectangleI(IntPtr graphics, IntPtr brush, int x, int y, int width, int height);
 
     public static void RenderWeatherIcon(IntPtr graphics, string emojiOrCode)
@@ -46,7 +49,11 @@ public static class TrayVectorRenderer
 
         string code = emojiOrCode ?? "☀️";
 
-        if (code.Contains("☀️") || code.Equals("sun", StringComparison.OrdinalIgnoreCase))
+        if (code.Contains("🔄") || code.Contains("⏳") || code.Contains("⌛") || code.Equals("reload", StringComparison.OrdinalIgnoreCase) || code.Equals("refresh", StringComparison.OrdinalIgnoreCase) || code.Equals("fetching", StringComparison.OrdinalIgnoreCase))
+        {
+            DrawReload(graphics);
+        }
+        else if (code.Contains("☀️") || code.Equals("sun", StringComparison.OrdinalIgnoreCase))
         {
             DrawSun(graphics);
         }
@@ -227,5 +234,30 @@ public static class TrayVectorRenderer
 
         GdipDeleteBrush(shadowBrush);
         GdipDeleteBrush(topBrush);
+    }
+
+    private static void DrawReload(IntPtr graphics)
+    {
+        uint cyanColor  = 0xFF00E5FF; // Bright Cyan Blue
+        uint arrowColor = 0xFF00B0FF;
+
+        GdipCreatePen1(cyanColor, 3.5f, 2, out IntPtr pen);
+        GdipCreateSolidFill(arrowColor, out IntPtr arrowBrush);
+
+        // Circular arc (280 degrees around center 16,16)
+        GdipDrawArcI(graphics, pen, 6, 6, 20, 20, 40.0f, 280.0f);
+
+        // Arrowhead at top-right end of arc
+        GdipPointI[] arrow = new GdipPointI[]
+        {
+            new GdipPointI(19, 3),
+            new GdipPointI(27, 8),
+            new GdipPointI(21, 14)
+        };
+
+        GdipFillPolygonI(graphics, arrowBrush, arrow, 3, 0);
+
+        GdipDeletePen(pen);
+        GdipDeleteBrush(arrowBrush);
     }
 }
