@@ -29,5 +29,5 @@ public class HourlyForecastItem
     public double RainChance { get; set; }
 
     /// <summary>Tooltip text displayed when hovering over the hourly slot card.</summary>
-    public string TooltipText => $"{FormattedTime} — {ConditionText}\n{DisplayTemperature} ({Math.Round(RainChance)}% chuva)";
+    public string TooltipText => $"{FormattedTime} — {ConditionText}\n{DisplayTemperature} ({Math.Round(RainChance)}%)";
 }

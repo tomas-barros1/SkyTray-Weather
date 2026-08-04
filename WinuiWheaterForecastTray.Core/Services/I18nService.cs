@@ -9,6 +9,16 @@ namespace WinuiWheaterForecastTray.Services;
 
 public sealed class I18nService : II18nService
 {
+    private const double AqiGoodThreshold = 50.0;
+    private const double AqiFairThreshold = 100.0;
+    private const double AqiModerateThreshold = 150.0;
+    private const double AqiPoorThreshold = 200.0;
+
+    private const double UvLowThreshold = 2.0;
+    private const double UvModerateThreshold = 5.0;
+    private const double UvHighThreshold = 7.0;
+    private const double UvVeryHighThreshold = 10.0;
+
     private readonly Dictionary<string, string> _translations = new(StringComparer.OrdinalIgnoreCase);
 
     public string CurrentCulture { get; }
@@ -86,20 +96,20 @@ public sealed class I18nService : II18nService
 
     public string GetAirQualityDescription(double usAqi) => usAqi switch
     {
-        <= 50 => GetString("Aqi_Good", "Bom"),
-        <= 100 => GetString("Aqi_Fair", "Razoável"),
-        <= 150 => GetString("Aqi_Moderate", "Moderado"),
-        <= 200 => GetString("Aqi_Poor", "Ruim"),
-        _ => GetString("Aqi_VeryPoor", "Péssimo")
+        <= AqiGoodThreshold => GetString("Aqi_Good", "Good"),
+        <= AqiFairThreshold => GetString("Aqi_Fair", "Fair"),
+        <= AqiModerateThreshold => GetString("Aqi_Moderate", "Moderate"),
+        <= AqiPoorThreshold => GetString("Aqi_Poor", "Poor"),
+        _ => GetString("Aqi_VeryPoor", "Very Poor")
     };
 
     public string GetUvDescription(double uvIndex) => uvIndex switch
     {
-        <= 2 => GetString("Uv_Low", "Baixo"),
-        <= 5 => GetString("Uv_Moderate", "Moderado"),
-        <= 7 => GetString("Uv_High", "Alto"),
-        <= 10 => GetString("Uv_VeryHigh", "Muito Alto"),
-        _ => GetString("Uv_Extreme", "Extremo")
+        <= UvLowThreshold => GetString("Uv_Low", "Low"),
+        <= UvModerateThreshold => GetString("Uv_Moderate", "Moderate"),
+        <= UvHighThreshold => GetString("Uv_High", "High"),
+        <= UvVeryHighThreshold => GetString("Uv_VeryHigh", "Very High"),
+        _ => GetString("Uv_Extreme", "Extreme")
     };
 
     public string FormatSummaryText(string cityName, string emoji, double temperature, string conditionText, double humidity, double windSpeed)
