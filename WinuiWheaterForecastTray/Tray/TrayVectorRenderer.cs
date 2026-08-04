@@ -238,7 +238,7 @@ public static class TrayVectorRenderer
 
     private static void DrawReload(IntPtr graphics)
     {
-        uint cyanColor  = 0xFF00E5FF; // Bright Cyan Blue
+        uint cyanColor = 0xFF00E5FF; // Bright Cyan Blue
         uint arrowColor = 0xFF00B0FF;
 
         GdipCreatePen1(cyanColor, 3.5f, 2, out IntPtr pen);
