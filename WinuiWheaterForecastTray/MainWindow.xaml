@@ -43,7 +43,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Hero Card (Supports long condition names like "Predominantemente Limpo") -->
+            <!-- Hero Card (Supports long condition names like "Mainly Clear") -->
             <Border Grid.Row="1" CornerRadius="12" Padding="16,12" Margin="0,0,0,10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>

@@ -10,7 +10,7 @@ public class CurrentWeatherInfo
     /// <summary>Name of the geocoded city or location label.</summary>
     public string CityName { get; set; } = string.Empty;
 
-    /// <summary>Formatted date string (e.g. "sexta-feira, 31/07").</summary>
+    /// <summary>Formatted date string (e.g. "Friday, 31/07").</summary>
     public string DateString { get; set; } = string.Empty;
 
     /// <summary>Current temperature in degrees Celsius.</summary>
@@ -22,7 +22,7 @@ public class CurrentWeatherInfo
     /// <summary>WMO weather condition code.</summary>
     public int WeatherCode { get; set; }
 
-    /// <summary>Localized weather condition description (e.g. "Ensolarado").</summary>
+    /// <summary>Localized weather condition description (e.g. "Sunny").</summary>
     public string ConditionText { get; set; } = string.Empty;
 
     /// <summary>Condition emoji icon (e.g. "☀️").</summary>
@@ -51,10 +51,10 @@ public class CurrentWeatherInfo
     /// <summary>Precipitation probability for the current hour (0–100 %).</summary>
     public double PrecipitationProbability { get; set; }
 
-    /// <summary>Localized air quality text description (e.g. "Bom").</summary>
+    /// <summary>Localized air quality text description (e.g. "Good").</summary>
     public string AirQualityText { get; set; } = string.Empty;
 
-    /// <summary>Localized UV index text description (e.g. "Moderado").</summary>
+    /// <summary>Localized UV index text description (e.g. "Moderate").</summary>
     public string UvIndexText { get; set; } = string.Empty;
 
     /// <summary>Sunrise time formatted as "HH:mm".</summary>

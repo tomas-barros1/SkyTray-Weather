@@ -16,7 +16,7 @@ namespace WinuiWheaterForecastTray.Services;
 public sealed class AirQualityService : IAirQualityService
 {
     // R-05: Named constant for fallback AQI
-    private const double DefaultUsAqi = 42.0; // Good / Razoável AQI fallback
+    private const double DefaultUsAqi = 42.0; // Good AQI fallback
 
     private static readonly HttpClient DefaultHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private readonly HttpClient _httpClient;

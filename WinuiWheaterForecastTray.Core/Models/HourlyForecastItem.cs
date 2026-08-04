@@ -22,7 +22,7 @@ public class HourlyForecastItem
     /// <summary>Condition emoji icon (e.g. "🌧️").</summary>
     public string Emoji { get; set; } = string.Empty;
 
-    /// <summary>Localized weather condition text (e.g. "Céu Limpo").</summary>
+    /// <summary>Localized weather condition text (e.g. "Clear").</summary>
     public string ConditionText { get; set; } = string.Empty;
 
     /// <summary>Chance of rain percentage (0–100 %).</summary>

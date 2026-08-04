@@ -15,8 +15,8 @@ namespace WinuiWheaterForecastTray.Services;
 /// </summary>
 public sealed class WeatherService : IWeatherService
 {
-    private const double DefaultLatitude = -23.5505;  // São Paulo fallback latitude
-    private const double DefaultLongitude = -46.6333; // São Paulo fallback longitude
+    private const double DefaultLatitude = -23.5505;  // Default fallback latitude
+    private const double DefaultLongitude = -46.6333; // Default fallback longitude
     private const double MaxCacheDistanceDegrees = 0.05; // ~5.5 km threshold for location cache hit
 
     private const string DefaultSunriseTime = "05:55";
