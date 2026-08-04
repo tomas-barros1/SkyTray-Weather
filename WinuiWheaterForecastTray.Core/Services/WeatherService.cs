@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WinuiWheaterForecastTray.DTOs;
@@ -10,14 +11,14 @@ using WinuiWheaterForecastTray.Services.Interfaces;
 namespace WinuiWheaterForecastTray.Services;
 
 /// <summary>
-/// Orchestrator service responsible for aggregating weather, geocoding, and air quality data into unified domain models.
+/// Core orchestrator for location detection, concurrent API fetching, AQI calculation, and model transformations.
 /// </summary>
 public sealed class WeatherService : IWeatherService
 {
-    private const double DefaultLatitude = -23.5505;
-    private const double DefaultLongitude = -46.6333;
+    private const double DefaultLatitude = -23.5505;  // São Paulo fallback latitude
+    private const double DefaultLongitude = -46.6333; // São Paulo fallback longitude
+    private const double MaxCacheDistanceDegrees = 0.05; // ~5.5 km threshold for location cache hit
 
-    // R-01 / R-05: Named constants for fallback values
     private const string DefaultSunriseTime = "05:55";
     private const string DefaultSunsetTime = "17:30";
     private const double DefaultUvIndexMax = 3.0;
@@ -27,6 +28,7 @@ public sealed class WeatherService : IWeatherService
     private readonly IGeocodingService _geocodingService;
     private readonly II18nService _i18nService;
     private readonly IAirQualityService _airQualityService;
+    private readonly ILocationCacheService? _locationCacheService;
 
     private readonly IReadOnlyList<ILocationService> _locationProviders;
 
@@ -36,13 +38,15 @@ public sealed class WeatherService : IWeatherService
         IGeocodingService geocodingService,
         ILocationService? ipLocationService = null,
         II18nService? i18nService = null,
-        IAirQualityService? airQualityService = null)
+        IAirQualityService? airQualityService = null,
+        ILocationCacheService? locationCacheService = null)
         : this(
             apiService,
             geocodingService,
             CreateProviderChain(locationService, ipLocationService),
             i18nService,
-            airQualityService)
+            airQualityService,
+            locationCacheService)
     { }
 
     public WeatherService(
@@ -50,28 +54,32 @@ public sealed class WeatherService : IWeatherService
         IGeocodingService geocodingService,
         IEnumerable<ILocationService> locationProviders,
         II18nService? i18nService = null,
-        IAirQualityService? airQualityService = null)
+        IAirQualityService? airQualityService = null,
+        ILocationCacheService? locationCacheService = null)
     {
         _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
         _geocodingService = geocodingService ?? throw new ArgumentNullException(nameof(geocodingService));
-        _locationProviders = new List<ILocationService>(locationProviders ?? throw new ArgumentNullException(nameof(locationProviders))).AsReadOnly();
+        _locationProviders = locationProviders?.ToList() ?? throw new ArgumentNullException(nameof(locationProviders));
         _i18nService = i18nService ?? new I18nService();
         _airQualityService = airQualityService ?? new AirQualityService();
+        _locationCacheService = locationCacheService ?? new LocationCacheService();
     }
 
-    private static IEnumerable<ILocationService> CreateProviderChain(ILocationService primary, ILocationService? secondary)
+    private static List<ILocationService> CreateProviderChain(ILocationService locationService, ILocationService? ipLocationService)
     {
-        if (primary != null) yield return primary;
-        yield return secondary ?? new IpLocationService();
+        var list = new List<ILocationService>();
+        if (locationService != null) list.Add(locationService);
+        if (ipLocationService != null) list.Add(ipLocationService);
+        return list;
     }
 
     /// <inheritdoc/>
     public async Task<WeatherForecastData> GetForecastAsync(double? customLat = null, double? customLon = null, CancellationToken cancellationToken = default)
     {
         var (lat, lon) = await ResolveCoordinatesAsync(customLat, customLon, cancellationToken).ConfigureAwait(false);
-        var (dto, aqi, cityName) = await FetchAllAsync(lat, lon, cancellationToken).ConfigureAwait(false);
+        var (weatherDto, aqi, cityName) = await FetchAllAsync(lat, lon, cancellationToken).ConfigureAwait(false);
 
-        return BuildForecastData(dto, aqi, cityName);
+        return BuildForecastData(weatherDto, aqi, cityName);
     }
 
     private async Task<(double Latitude, double Longitude)> ResolveCoordinatesAsync(double? customLat, double? customLon, CancellationToken cancellationToken)
@@ -93,11 +101,33 @@ public sealed class WeatherService : IWeatherService
     {
         var weatherTask = _apiService.GetWeatherDataAsync(lat, lon, cancellationToken);
         var aqiTask = _airQualityService.GetUsAqiAsync(lat, lon, cancellationToken);
-        var cityTask = _geocodingService.GetCityNameAsync(lat, lon, cancellationToken);
+        var cityTask = ResolveCityNameAsync(lat, lon, cancellationToken);
 
         await Task.WhenAll(weatherTask, aqiTask, cityTask).ConfigureAwait(false);
 
         return (weatherTask.Result, aqiTask.Result, cityTask.Result);
+    }
+
+    private async Task<string?> ResolveCityNameAsync(double lat, double lon, CancellationToken cancellationToken)
+    {
+        var cached = _locationCacheService?.GetCachedLocation();
+        if (cached != null && !string.IsNullOrWhiteSpace(cached.CityName))
+        {
+            double dLat = Math.Abs(lat - cached.Latitude);
+            double dLon = Math.Abs(lon - cached.Longitude);
+            if (dLat <= MaxCacheDistanceDegrees && dLon <= MaxCacheDistanceDegrees)
+            {
+                return cached.CityName;
+            }
+        }
+
+        var fetchedCity = await _geocodingService.GetCityNameAsync(lat, lon, cancellationToken).ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(fetchedCity))
+        {
+            _locationCacheService?.SaveLocationCache(lat, lon, fetchedCity);
+        }
+
+        return fetchedCity ?? cached?.CityName;
     }
 
     private WeatherForecastData BuildForecastData(ApiResponseDTO dto, double aqi, string? cityName)
@@ -229,16 +259,8 @@ public sealed class WeatherService : IWeatherService
     private static string FormatTime(string rawTime)
     {
         if (DateTime.TryParse(rawTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
-            return dt.ToString("HH:mm", CultureInfo.InvariantCulture);
-
-        if (rawTime.Contains('T'))
         {
-            var parts = rawTime.Split('T');
-            if (parts.Length > 1)
-            {
-                var sub = parts[1].Split(':');
-                if (sub.Length >= 2) return $"{sub[0]}:{sub[1]}";
-            }
+            return dt.ToString("HH:mm");
         }
         return rawTime;
     }

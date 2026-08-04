@@ -50,6 +50,26 @@
                         <ComboBoxItem Content="60 min" Tag="60" />
                     </ComboBox>
                 </Grid>
+
+                <!-- Location Cache Section -->
+                <Grid Margin="0,4,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtLocationCache" Text="Location Cache:" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock x:Name="TxtCacheStatus" Text="" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Margin="0,2,0,0" Visibility="Collapsed" />
+                    </StackPanel>
+
+                    <Button x:Name="BtnClearCache" Click="BtnClearCache_Click" Grid.Column="1" Padding="10,4" VerticalAlignment="Center" Style="{StaticResource SubtleButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                            <TextBlock x:Name="TxtClearCache" Text="Clear Cache" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
             </StackPanel>
         </Border>
 

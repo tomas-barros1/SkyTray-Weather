@@ -23,6 +23,7 @@ namespace WinuiWheaterForecastTray
 
         private readonly IAutostartService _autostartService;
         private readonly ISettingsService _settingsService;
+        private readonly ILocationCacheService _locationCacheService;
         private readonly II18nService _i18nService;
         private IntPtr _hwnd;
         private AppWindow _appWindow;
@@ -37,6 +38,7 @@ namespace WinuiWheaterForecastTray
             _i18nService = i18nService ?? new I18nService();
             _autostartService = new AutostartService();
             _settingsService = new SettingsService();
+            _locationCacheService = new LocationCacheService();
 
             _hwnd = WindowNative.GetWindowHandle(this);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(_hwnd);
@@ -55,7 +57,7 @@ namespace WinuiWheaterForecastTray
 
             if (_appWindow != null)
             {
-                _appWindow.Resize(new SizeInt32(350, 250));
+                _appWindow.Resize(new SizeInt32(360, 300));
 
                 var presenter = _appWindow.Presenter as OverlappedPresenter;
                 if (presenter != null)
@@ -91,8 +93,8 @@ namespace WinuiWheaterForecastTray
             var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
             if (displayArea != null)
             {
-                int width = 350;
-                int height = 250;
+                int width = 360;
+                int height = 300;
                 int x = displayArea.WorkArea.X + (displayArea.WorkArea.Width - width) / 2;
                 int y = displayArea.WorkArea.Y + (displayArea.WorkArea.Height - height) / 2;
 
@@ -105,6 +107,8 @@ namespace WinuiWheaterForecastTray
             TxtTitle.Text = _i18nService.GetString("SettingsTitle", "Settings");
             TxtStartWithWindows.Text = _i18nService.GetString("StartWithWindows", "Start with Windows");
             TxtRefreshInterval.Text = _i18nService.GetString("RefreshInterval", "Refresh interval:");
+            TxtLocationCache.Text = _i18nService.GetString("LocationCache", "Location Cache:");
+            TxtClearCache.Text = _i18nService.GetString("ClearCache", "Clear Cache");
         }
 
         private void LoadSettings()
@@ -137,6 +141,14 @@ namespace WinuiWheaterForecastTray
                 _settingsService.SetRefreshIntervalMinutes(minutes);
                 SettingsChanged?.Invoke(this, EventArgs.Empty);
             }
+        }
+
+        private void BtnClearCache_Click(object sender, RoutedEventArgs e)
+        {
+            _locationCacheService.ClearCache();
+            TxtCacheStatus.Text = _i18nService.GetString("CacheCleared", "Location cache cleared successfully!");
+            TxtCacheStatus.Visibility = Visibility.Visible;
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
