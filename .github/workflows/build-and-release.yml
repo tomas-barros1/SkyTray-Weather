@@ -24,13 +24,13 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore WinuiWheaterForecastTray.slnx
+        run: dotnet restore WinuiWeatherForecastTray.slnx
 
       - name: Run Automated Tests
-        run: dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj --configuration Release --logger "console;verbosity=normal"
+        run: dotnet test WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj --configuration Release --logger "console;verbosity=normal"
 
       - name: Publish Standalone Release Build
-        run: dotnet publish WinuiWheaterForecastTray/WinuiWheaterForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
+        run: dotnet publish WinuiWeatherForecastTray/WinuiWeatherForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
 
       - name: Copy Installer Script to Package
         shell: powershell

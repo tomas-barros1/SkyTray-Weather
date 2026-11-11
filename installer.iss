@@ -2,7 +2,7 @@
 #define MyAppName "SkyTray Weather"
 #define MyAppPublisher "SkyTray"
 #define MyAppURL "https://github.com/tomas-barros1/SkyTray-Weather"
-#define MyAppExeName "WinuiWheaterForecastTray.exe"
+#define MyAppExeName "WinuiWeatherForecastTray.exe"
 
 #ifndef MyAppVersion
 #define MyAppVersion "1.1.0"
@@ -19,7 +19,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={localappdata}\SkyTrayWeather
 DisableProgramGroupPage=yes
 OutputBaseFilename=SkyTrayWeather-Setup-x64
-SetupIconFile=WinuiWheaterForecastTray\Assets\app.ico
+SetupIconFile=WinuiWeatherForecastTray\Assets\app.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

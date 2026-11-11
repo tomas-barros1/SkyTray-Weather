@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WinuiWeatherForecastTray (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "WinuiWeatherForecastTray (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -6,13 +6,13 @@ $repoRoot = $PSScriptRoot
 $publishDir = Join-Path $repoRoot "publish"
 
 if (-not (Test-Path $publishDir)) {
-    $publishDir = Join-Path $repoRoot "WinuiWheaterForecastTray\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish"
+    $publishDir = Join-Path $repoRoot "WinuiWeatherForecastTray\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish"
 }
 
 Write-Host "Installing SkyTray Weather to $installDir..." -ForegroundColor Cyan
 
 # Stop any running process
-Stop-Process -Name "WinuiWheaterForecastTray" -Force -ErrorAction SilentlyContinue
+Stop-Process -Name "WinuiWeatherForecastTray" -Force -ErrorAction SilentlyContinue
 
 # Ensure directory exists
 if (-not (Test-Path $installDir)) {
@@ -22,7 +22,7 @@ if (-not (Test-Path $installDir)) {
 # Copy files
 Copy-Item -Path "$publishDir\*" -Destination $installDir -Recurse -Force
 
-$exePath = "$installDir\WinuiWheaterForecastTray.exe"
+$exePath = "$installDir\WinuiWeatherForecastTray.exe"
 $icoPath = "$installDir\Assets\app.ico"
 
 # Create Start Menu Shortcut

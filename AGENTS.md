@@ -4,38 +4,38 @@ Compact guidance for OpenCode sessions working in `SkyTray Weather` (WinUI 3 sys
 
 ## Repository at a glance
 
-Three .NET projects, no `*.sln` (only the XML-format `WinuiWheaterForecastTray.slnx`):
+Three .NET projects, no `*.sln` (only the XML-format `WinuiWeatherForecastTray.slnx`):
 
 | Project | Path | Purpose |
 |---|---|---|
-| `WinuiWheaterForecastTray.Core` | `WinuiWheaterForecastTray.Core/` | Domain library: DTOs, services, models, i18n |
-| `WinuiWheaterForecastTray` | `WinuiWheaterForecastTray/` | WinUI 3 unpackaged app, XAML, tray renderer |
-| `WinuiWheaterForecastTray.Tests` | `WinuiWheaterForecastTray.Tests/` | xUnit + Moq + FluentAssertions |
+| `WinuiWeatherForecastTray.Core` | `WinuiWeatherForecastTray.Core/` | Domain library: DTOs, services, models, i18n |
+| `WinuiWeatherForecastTray` | `WinuiWeatherForecastTray/` | WinUI 3 unpackaged app, XAML, tray renderer |
+| `WinuiWeatherForecastTray.Tests` | `WinuiWeatherForecastTray.Tests/` | xUnit + Moq + FluentAssertions |
 
 All target `net8.0-windows10.0.19041.0` with `<Nullable>enable</Nullable>`. UI app is unpackaged (`WindowsPackageType=None`).
 
 ## Solution File
 
-`WinuiWheaterForecastTray.slnx` includes all three projects (`WinuiWheaterForecastTray.Core`, `WinuiWheaterForecastTray`, `WinuiWheaterForecastTray.Tests`). Build, test, and publish commands:
+`WinuiWeatherForecastTray.slnx` includes all three projects (`WinuiWeatherForecastTray.Core`, `WinuiWeatherForecastTray`, `WinuiWeatherForecastTray.Tests`). Build, test, and publish commands:
 
 ```powershell
-dotnet restore WinuiWheaterForecastTray.slnx
-dotnet build   WinuiWheaterForecastTray.slnx -p:Platform=x64
-dotnet test    WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj -c Release
-dotnet publish WinuiWheaterForecastTray/WinuiWheaterForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
+dotnet restore WinuiWeatherForecastTray.slnx
+dotnet build   WinuiWeatherForecastTray.slnx -p:Platform=x64
+dotnet test    WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj -c Release
+dotnet publish WinuiWeatherForecastTray/WinuiWeatherForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
 ```
 
 CI in `.github/workflows/build-and-release.yml` follows the same pattern. Publishing must include `-p:Platform=x64` (or `x86`/`ARM64`); the UI csproj targets all three but requires the platform flag explicitly.
 
 ## Entry points
 
-- App startup: `WinuiWheaterForecastTray/App.xaml.cs` → constructs `MainWindow`.
-- Window logic + tray integration: `WinuiWheaterForecastTray/MainWindow.xaml.cs` (387 lines, mixes WinUI, Win32 P/Invoke, services, timer).
-- Settings UI: `WinuiWheaterForecastTray/SettingsWindow.xaml.cs`.
-- Tray subsystem: `WinuiWheaterForecastTray/Tray/{TrayIconManager,TrayIconHelper,TrayVectorRenderer}.cs` (GDI+ vector rendering, `NOTIFYICONDATA` shell notifications).
-- Win32 interop structs: `WinuiWheaterForecastTray/Native/` (`NOTIFYICONDATA`, `ICONINFO`, `POINT`, `GdipPointI`, `GdipRectF`, `GdiplusStartupInput`).
-- Service orchestration: `WinuiWheaterForecastTray.Core/Services/WeatherService.cs` (composes `IApiService`, `ILocationService`, `IGeocodingService`, `IAirQualityService`, `II18nService`).
-- i18n resources: `WinuiWheaterForecastTray.Core/Resources/*.json`, copied to output via the `<None Update="Resources\*.json">` rule.
+- App startup: `WinuiWeatherForecastTray/App.xaml.cs` → constructs `MainWindow`.
+- Window logic + tray integration: `WinuiWeatherForecastTray/MainWindow.xaml.cs` (387 lines, mixes WinUI, Win32 P/Invoke, services, timer).
+- Settings UI: `WinuiWeatherForecastTray/SettingsWindow.xaml.cs`.
+- Tray subsystem: `WinuiWeatherForecastTray/Tray/{TrayIconManager,TrayIconHelper,TrayVectorRenderer}.cs` (GDI+ vector rendering, `NOTIFYICONDATA` shell notifications).
+- Win32 interop structs: `WinuiWeatherForecastTray/Native/` (`NOTIFYICONDATA`, `ICONINFO`, `POINT`, `GdipPointI`, `GdipRectF`, `GdiplusStartupInput`).
+- Service orchestration: `WinuiWeatherForecastTray.Core/Services/WeatherService.cs` (composes `IApiService`, `ILocationService`, `IGeocodingService`, `IAirQualityService`, `II18nService`).
+- i18n resources: `WinuiWeatherForecastTray.Core/Resources/*.json`, copied to output via the `<None Update="Resources\*.json">` rule.
 
 ## Conventions that diverge from defaults
 
@@ -51,16 +51,16 @@ CI in `.github/workflows/build-and-release.yml` follows the same pattern. Publis
 ## Test running
 
 - Suite: xUnit (`2.7.0`), Moq (`4.20.70`), FluentAssertions (`6.12.0`).
-- Mock HTTP via `WinuiWheaterForecastTray.Tests/MockHttpMessageHandler.cs`.
+- Mock HTTP via `WinuiWeatherForecastTray.Tests/MockHttpMessageHandler.cs`.
 - Integration tests in `ApiContractIntegrationTests.cs` exercise `ApiService` against fixture JSON.
-- Single-test invocation: `dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj --filter "FullyQualifiedName~TestName"`.
+- Single-test invocation: `dotnet test WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj --filter "FullyQualifiedName~TestName"`.
 - Tests do NOT cover the UI project (no `Microsoft.WindowsAppSDK` test host). Stay in `Core`/`Tests` when writing tests.
 
 ## Build artifacts and what to ignore
 
 - `bin/`, `obj/`, `.vs/`, `*.user`, `*.suo` — already in `.gitignore`.
 - `.opencode/node_modules/` is opencode's own skill runtime; ignore unless working on skills.
-- `WinuiWheaterForecastTray/obj/` and `WinuiWheaterForecastTray.Core/obj/` are generated; never hand-edit.
+- `WinuiWeatherForecastTray/obj/` and `WinuiWeatherForecastTray.Core/obj/` are generated; never hand-edit.
 
 ## Release flow (verified from `.github/workflows/build-and-release.yml`)
 

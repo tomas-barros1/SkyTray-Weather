@@ -77,9 +77,9 @@ O aplicativo será instalado automaticamente em `%LocalAppData%\SkyTrayWeather` 
 
 
 ```text
-├── WinuiWheaterForecastTray.Core/      # Biblioteca de domínio .NET 8 (DTOs, Serviços, i18n, APIs)
-├── WinuiWheaterForecastTray/           # Aplicação UI WinUI 3 (Windows App SDK, Renderizador Tray, XAML)
-├── WinuiWheaterForecastTray.Tests/     # Suíte de Testes Automatizados xUnit (16 testes unitários e de integração)
+├── WinuiWeatherForecastTray.Core/      # Biblioteca de domínio .NET 8 (DTOs, Serviços, i18n, APIs)
+├── WinuiWeatherForecastTray/           # Aplicação UI WinUI 3 (Windows App SDK, Renderizador Tray, XAML)
+├── WinuiWeatherForecastTray.Tests/     # Suíte de Testes Automatizados xUnit (16 testes unitários e de integração)
 ├── Install-SkyTray.ps1                 # Script de instalação de 1-clique para Windows
 └── .github/workflows/                  # Automação CI/CD GitHub Actions
 ```
@@ -150,7 +150,7 @@ The application will automatically install to `%LocalAppData%\SkyTrayWeather` an
 ### 🧪 Running Tests
 
 ```powershell
-dotnet test WinuiWheaterForecastTray.Tests/WinuiWheaterForecastTray.Tests.csproj --logger "console;verbosity=normal"
+dotnet test WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj --logger "console;verbosity=normal"
 ```
 
 ---
