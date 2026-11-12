@@ -4,6 +4,19 @@ All notable changes to SkyTray Weather are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 Older releases: see [GitHub Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases).
 
+## [1.5.1] - 2026-11-11
+
+### Changed
+- **Now targets .NET 10 (LTS, supported until November 2028)** instead of .NET 8, which reached end of support on 2026-11-10. The Core, UI and Test projects use `net10.0-windows10.0.19041.0` and CI builds with the .NET 10 SDK.
+- Release packages are still self-contained: no .NET runtime needs to be installed to run SkyTray Weather.
+- Docs (README badge, `AGENTS.md`) and the install script's publish-folder fallback updated for the new target framework.
+
+### Added
+- `CHANGELOG.md`.
+
+### Upgrade notes
+- Building from source now requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
+
 ## [1.5.0] - 2026-11-11
 
 ### Added
