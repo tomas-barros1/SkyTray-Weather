@@ -60,6 +60,7 @@ namespace WinuiWeatherForecastTray
         private bool _isExiting = false;
         private bool _hasLoadedOnce = false;
         private int _startupRetryCount = 0;
+        private bool _isRefreshing = false;
         private static readonly int[] StartupRetryDelaysSeconds = { 10, 30, 60 };
         private DateTime _lastDeactivatedTime = DateTime.MinValue;
 
@@ -81,7 +82,15 @@ namespace WinuiWeatherForecastTray
             IGeocodingService geocodingService = new GeocodingService();
             ILocationService ipLocationService = new IpLocationService();
             IAirQualityService airQualityService = new AirQualityService();
-            _weatherService = new WeatherService(apiService, locationService, geocodingService, ipLocationService, _i18nService, airQualityService);
+            // Decorator: persists each successful forecast and serves the last one (flagged stale)
+            // when a fetch fails, so the app still shows something useful while offline.
+            _weatherService = new CachedWeatherService(
+                new WeatherService(apiService, locationService, geocodingService, ipLocationService, _i18nService, airQualityService),
+                new ForecastCacheService());
+
+            // Keeps the "start with Windows" entry pointing at this executable after upgrades/renames.
+            try { new AutostartService().RefreshAutostartPath(); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Autostart refresh failed: {ex.Message}"); }
 
             ApplyLocalizedStrings();
 
@@ -134,7 +143,7 @@ namespace WinuiWeatherForecastTray
             if (_appWindow != null)
             {
                 _appWindow.IsShownInSwitchers = false;
-                _appWindow.Resize(new SizeInt32(360, 510));
+                _appWindow.Resize(new SizeInt32(360, 524));
 
                 var presenter = _appWindow.Presenter as OverlappedPresenter;
                 if (presenter != null)
@@ -180,7 +189,7 @@ namespace WinuiWeatherForecastTray
             if (displayArea != null)
             {
                 int width = 360;
-                int height = 510;
+                int height = 524;
                 int x = displayArea.WorkArea.X + displayArea.WorkArea.Width - width - 16;
                 int y = displayArea.WorkArea.Y + displayArea.WorkArea.Height - height - 16;
 
@@ -208,41 +217,113 @@ namespace WinuiWeatherForecastTray
 
         private async Task RefreshWeatherAsync(bool isStartup = false)
         {
+            // Timer ticks, manual refresh and startup retries can overlap; run one at a time.
+            if (_isRefreshing)
+                return;
+            _isRefreshing = true;
+
+            bool hadData = _currentForecast != null;
             try
             {
                 BtnRefresh.IsEnabled = false;
-                LoadingStack.Visibility = Visibility.Visible;
-                ContentGrid.Visibility = Visibility.Collapsed;
 
-                _trayIconManager?.Update("🔄", _i18nService.GetString("FetchingData", "Fetching weather data..."));
+                // Only blank the window on the very first load; later refreshes keep the
+                // current data on screen instead of flashing a spinner every few minutes.
+                if (!hadData)
+                {
+                    ShowLoading();
+                    _trayIconManager?.Update("🔄", _i18nService.GetString("FetchingData", "Fetching weather data..."));
+                }
 
-                _currentForecast = await _weatherService.GetForecastAsync().ConfigureAwait(true);
+                var forecast = await _weatherService.GetForecastAsync().ConfigureAwait(true);
 
-                if (_currentForecast != null)
+                _currentForecast = forecast;
+                ShowContent();
+                UpdateUI(forecast);
+
+                if (!forecast.IsStale)
                 {
                     _hasLoadedOnce = true;
                     _startupRetryCount = 0;
-                    UpdateUI(_currentForecast);
+                }
+                else
+                {
+                    // Showing a cached copy: keep trying to get fresh data on startup.
+                    ScheduleStartupRetryIfNeeded(isStartup);
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Weather load error: {ex}");
 
-                // On startup, the network may not be ready yet. Schedule a retry with backoff.
-                if (isStartup && !_hasLoadedOnce && _startupRetryCount < StartupRetryDelaysSeconds.Length)
+                if (_currentForecast != null)
                 {
-                    int delaySeconds = StartupRetryDelaysSeconds[_startupRetryCount++];
-                    System.Diagnostics.Debug.WriteLine($"[Startup] Network not ready. Retrying in {delaySeconds}s (attempt {_startupRetryCount})...");
-                    ScheduleStartupRetry(delaySeconds);
+                    // Keep showing what we already have, but mark it as out of date.
+                    _currentForecast.IsStale = true;
+                    ShowContent();
+                    UpdateUI(_currentForecast);
                 }
+                else
+                {
+                    ShowLoadFailure();
+                }
+
+                ScheduleStartupRetryIfNeeded(isStartup);
             }
             finally
             {
                 BtnRefresh.IsEnabled = true;
-                LoadingStack.Visibility = Visibility.Collapsed;
-                ContentGrid.Visibility = Visibility.Visible;
+                _isRefreshing = false;
             }
+        }
+
+        /// <summary>On startup the network may not be ready yet: retry with backoff until data loads.</summary>
+        private void ScheduleStartupRetryIfNeeded(bool isStartup)
+        {
+            if (isStartup && !_hasLoadedOnce && _startupRetryCount < StartupRetryDelaysSeconds.Length)
+            {
+                int delaySeconds = StartupRetryDelaysSeconds[_startupRetryCount++];
+                System.Diagnostics.Debug.WriteLine($"[Startup] Network not ready. Retrying in {delaySeconds}s (attempt {_startupRetryCount})...");
+                ScheduleStartupRetry(delaySeconds);
+            }
+        }
+
+        private void ShowLoading()
+        {
+            LoadingRing.IsActive = true;
+            LoadingRing.Visibility = Visibility.Visible;
+            LblLoading.Text = _i18nService.GetString("FetchingData", "Fetching weather data...");
+            LoadingStack.Visibility = Visibility.Visible;
+            ContentGrid.Visibility = Visibility.Collapsed;
+        }
+
+        private void ShowContent()
+        {
+            LoadingRing.IsActive = false;
+            LoadingStack.Visibility = Visibility.Collapsed;
+            ContentGrid.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>First load failed and there is nothing cached: say so instead of showing an empty window.</summary>
+        private void ShowLoadFailure()
+        {
+            string message = _i18nService.GetString("FetchFailed", "Couldn't load weather data");
+            LoadingRing.IsActive = false;
+            LoadingRing.Visibility = Visibility.Collapsed;
+            LblLoading.Text = message;
+            LoadingStack.Visibility = Visibility.Visible;
+            ContentGrid.Visibility = Visibility.Collapsed;
+            _trayIconManager?.Update("⚠️", message);
+        }
+
+        /// <summary>"Updated 14:05" or "Offline · updated 14:05", depending on whether the data is a cached copy.</summary>
+        private string BuildUpdatedLabel(WeatherForecastData data)
+        {
+            string time = data.FetchedAtUtc.ToLocalTime().ToString("t", _i18nService.CurrentFormatProvider);
+            string template = data.IsStale
+                ? _i18nService.GetString("OfflineUpdatedAt", "Offline · updated {0}")
+                : _i18nService.GetString("UpdatedAt", "Updated {0}");
+            return string.Format(template, time);
         }
 
         private void ScheduleStartupRetry(int delaySeconds)
@@ -280,8 +361,13 @@ namespace WinuiWeatherForecastTray
 
             HourlyItemsControl.ItemsSource = data.HourlyForecast;
 
+            string updatedLabel = BuildUpdatedLabel(data);
+            TxtUpdated.Text = data.IsStale ? $"⚠ {updatedLabel}" : updatedLabel;
+
             string trayEmoji = WeatherHelper.GetTrayEmoji(data.Current.WeatherCode, data.Current.IsDay);
-            _trayIconManager.Update(trayEmoji, data.Current.SummaryText);
+            // Stale marker goes first: the shell truncates long tooltips from the end.
+            string trayTooltip = data.IsStale ? $"⚠ {updatedLabel}\n{data.Current.SummaryText}" : data.Current.SummaryText;
+            _trayIconManager.Update(trayEmoji, trayTooltip);
         }
 
         private void TrayIconManager_TrayIconClicked(object? sender, EventArgs e)

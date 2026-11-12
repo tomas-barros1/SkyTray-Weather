@@ -10,7 +10,7 @@
     <Grid x:Name="RootGrid" Padding="16" Background="Transparent">
         <!-- Progress Ring / Loading Overlay -->
         <StackPanel x:Name="LoadingStack" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Visible">
-            <ProgressRing IsActive="True" Width="48" Height="48" Margin="0,0,0,12" />
+            <ProgressRing x:Name="LoadingRing" IsActive="True" Width="48" Height="48" Margin="0,0,0,12" />
             <TextBlock x:Name="LblLoading" Text="Fetching weather data..." FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
         </StackPanel>
 
@@ -31,6 +31,7 @@
                         <TextBlock Text="📍 " FontSize="14" VerticalAlignment="Center" />
                         <TextBlock x:Name="TxtCity" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </StackPanel>
+                    <TextBlock x:Name="TxtUpdated" FontSize="10" Margin="0,2,0,0" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
