@@ -10,7 +10,9 @@ using WinuiWeatherForecastTray.Services.Interfaces;
 namespace WinuiWeatherForecastTray.Services;
 
 /// <summary>
-/// Service implementation for IP-based geolocation using ipapi.co with ip-api.com fallback.
+/// Service implementation for IP-based geolocation using ipapi.co with ipwho.is as HTTPS fallback.
+/// Coordinates from either provider are validated before being returned (and therefore before they can
+/// be cached): they come from the network and are treated as untrusted input.
 /// </summary>
 public sealed class IpLocationService : ILocationService
 {
@@ -34,36 +36,60 @@ public sealed class IpLocationService : ILocationService
 
             if (response is { Error: false })
             {
-                return (response.Latitude, response.Longitude);
-            }
+                var coordinates = ValidateCoordinates(response.Latitude, response.Longitude);
+                if (coordinates.HasValue)
+                    return coordinates;
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[IpLocationService] ipapi.co reported error: {response?.Reason ?? "unknown"}");
+                System.Diagnostics.Debug.WriteLine("[IpLocationService] ipapi.co returned missing or out-of-range coordinates");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[IpLocationService] ipapi.co reported error: {response?.Reason ?? "unknown"}");
+            }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[IpLocationService] ipapi.co request failed: {ex.Message}");
         }
 
-        // Fallback: ip-api.com
+        // Fallback: ipwho.is (HTTPS)
         try
         {
             var fallback = await _httpClient
-                .GetFromJsonAsync<IpApiComFallbackDTO>(EndpointUrls.IpApiComJson, cancellationToken)
+                .GetFromJsonAsync<IpWhoIsDTO>(EndpointUrls.IpWhoIsJson, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (fallback is { Status: "success" })
+            if (fallback is { Success: true })
             {
-                return (fallback.Lat, fallback.Lon);
-            }
+                var coordinates = ValidateCoordinates(fallback.Latitude, fallback.Longitude);
+                if (coordinates.HasValue)
+                    return coordinates;
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[IpLocationService] ip-api.com fallback returned non-success status: {fallback?.Status}");
+                System.Diagnostics.Debug.WriteLine("[IpLocationService] ipwho.is returned missing or out-of-range coordinates");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[IpLocationService] ipwho.is fallback was not successful: {fallback?.Message ?? "unknown"}");
+            }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[IpLocationService] ip-api.com fallback failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[IpLocationService] ipwho.is fallback failed: {ex.Message}");
         }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Accepts only real WGS84 coordinates. (0, 0) is accepted when explicitly returned (it is a valid
+    /// point), but a missing field (null), NaN or an out-of-range value is rejected.
+    /// </summary>
+    private static (double Latitude, double Longitude)? ValidateCoordinates(double? latitude, double? longitude)
+    {
+        if (latitude is >= -90 and <= 90 && longitude is >= -180 and <= 180)
+            return (latitude.Value, longitude.Value);
 
         return null;
     }

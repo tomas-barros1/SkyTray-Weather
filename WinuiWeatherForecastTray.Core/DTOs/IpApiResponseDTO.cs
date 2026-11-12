@@ -4,11 +4,13 @@ namespace WinuiWeatherForecastTray.DTOs;
 
 public class IpApiResponseDTO
 {
+    /// <summary>Nullable on purpose: a missing field must not be mistaken for latitude 0.</summary>
     [JsonPropertyName("latitude")]
-    public double Latitude { get; set; }
+    public double? Latitude { get; set; }
 
+    /// <summary>Nullable on purpose: a missing field must not be mistaken for longitude 0.</summary>
     [JsonPropertyName("longitude")]
-    public double Longitude { get; set; }
+    public double? Longitude { get; set; }
 
     [JsonPropertyName("city")]
     public string? City { get; set; }
