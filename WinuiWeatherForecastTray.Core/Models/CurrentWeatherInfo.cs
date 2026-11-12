@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace WinuiWeatherForecastTray.Models;
 
@@ -42,6 +43,7 @@ public class CurrentWeatherInfo
 
     /// <summary>Legacy alias for <see cref="Pressure"/>.</summary>
     [System.Obsolete("Use Pressure instead.")]
+    [JsonIgnore]
     public double SurfacePressure
     {
         get => Pressure;
@@ -70,5 +72,6 @@ public class CurrentWeatherInfo
     public string? CustomSummaryText { get; set; }
 
     /// <summary>Formatted summary string for system tray tooltip or notification text.</summary>
+    [JsonIgnore]
     public string SummaryText => CustomSummaryText ?? $"📍 {CityName}\n{Emoji} {Math.Round(Temperature)}°C — {ConditionText}\n💧 {Math.Round(Humidity)}% humidity\n🌬️ {Math.Round(WindSpeed)} km/h wind";
 }

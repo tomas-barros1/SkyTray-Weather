@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace WinuiWeatherForecastTray.Models;
 
@@ -12,4 +14,14 @@ public class WeatherForecastData
 
     /// <summary>List of upcoming hourly forecast slot items.</summary>
     public List<HourlyForecastItem> HourlyForecast { get; set; } = new();
+
+    /// <summary>UTC timestamp of when this data was fetched from the weather API.</summary>
+    public DateTime FetchedAtUtc { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// <c>true</c> when this data is a previously cached copy served because a fresh fetch failed.
+    /// Never persisted; it is set by the cache layer when the data is read back.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsStale { get; set; }
 }

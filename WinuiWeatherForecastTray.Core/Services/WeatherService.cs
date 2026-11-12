@@ -94,6 +94,12 @@ public sealed class WeatherService : IWeatherService
                 return location.Value;
         }
 
+        // All providers failed (offline, permission denied, rate-limited IP API...).
+        // Prefer the last known real location over a hard-coded default city.
+        var cached = _locationCacheService?.GetCachedLocation();
+        if (cached != null)
+            return (cached.Latitude, cached.Longitude);
+
         return (DefaultLatitude, DefaultLongitude);
     }
 

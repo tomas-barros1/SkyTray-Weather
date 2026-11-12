@@ -203,4 +203,66 @@ public class WeatherServiceTests
         sw.Elapsed.TotalMilliseconds.Should().BeLessThan(DelayMs * 2.5,
             because: "three concurrent 2s tasks must complete in ~2s, not ~6s");
     }
+
+    private static ApiResponseDTO MinimalDto() => new()
+    {
+        Current = new CurrentWeatherDTO { Time = "2026-11-11T13:00", Temperature2m = 22.0, IsDay = 1 }
+    };
+
+    [Fact]
+    public async Task GetForecastAsync_WhenAllLocationProvidersFail_UsesLastKnownCoordinatesInsteadOfDefaultCity()
+    {
+        var mockApi = new Mock<IApiService>();
+        var mockGeocoding = new Mock<IGeocodingService>();
+        var failingProvider = new Mock<ILocationService>();
+        var mockLocationCache = new Mock<ILocationCacheService>();
+
+        failingProvider.Setup(l => l.GetLocationAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((double, double)?)null);
+        mockGeocoding.Setup(g => g.GetCityNameAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)"Feira de Santana");
+        mockLocationCache.Setup(c => c.GetCachedLocation())
+            .Returns(new WinuiWeatherForecastTray.Models.LocationCacheData
+            {
+                Latitude = -12.2664,
+                Longitude = -38.9663,
+                CityName = "Feira de Santana"
+            });
+        mockApi.Setup(a => a.GetWeatherDataAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MinimalDto());
+
+        var service = new WeatherService(
+            mockApi.Object, mockGeocoding.Object, new[] { failingProvider.Object },
+            new I18nService("en-US"), new Mock<IAirQualityService>().Object, mockLocationCache.Object);
+
+        await service.GetForecastAsync();
+
+        mockApi.Verify(a => a.GetWeatherDataAsync(-12.2664, -38.9663, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetForecastAsync_WhenProviderSucceeds_DoesNotUseCachedCoordinates()
+    {
+        var mockApi = new Mock<IApiService>();
+        var mockGeocoding = new Mock<IGeocodingService>();
+        var provider = new Mock<ILocationService>();
+        var mockLocationCache = new Mock<ILocationCacheService>();
+
+        provider.Setup(l => l.GetLocationAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((1.5, 2.5));
+        mockGeocoding.Setup(g => g.GetCityNameAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)"Somewhere");
+        mockLocationCache.Setup(c => c.GetCachedLocation())
+            .Returns(new WinuiWeatherForecastTray.Models.LocationCacheData { Latitude = 9, Longitude = 9, CityName = "Old" });
+        mockApi.Setup(a => a.GetWeatherDataAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MinimalDto());
+
+        var service = new WeatherService(
+            mockApi.Object, mockGeocoding.Object, new[] { provider.Object },
+            new I18nService("en-US"), new Mock<IAirQualityService>().Object, mockLocationCache.Object);
+
+        await service.GetForecastAsync();
+
+        mockApi.Verify(a => a.GetWeatherDataAsync(1.5, 2.5, It.IsAny<CancellationToken>()), Times.Once);
+    }
 }

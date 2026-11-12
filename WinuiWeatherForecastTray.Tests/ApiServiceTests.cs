@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using WinuiWeatherForecastTray.Services;
@@ -115,10 +116,85 @@ public class ApiServiceTests
         // Arrange
         var mockHandler = new MockHttpMessageHandler(req => new HttpResponseMessage(HttpStatusCode.InternalServerError));
         var httpClient = new HttpClient(mockHandler);
-        var apiService = new ApiService(httpClient);
+        var apiService = new ApiService(httpClient, NoDelay);
 
         // Act & Assert
         await FluentActions.Invoking(() => apiService.GetWeatherDataAsync(0, 0))
             .Should().ThrowAsync<HttpRequestException>();
+    }
+
+    private static readonly TimeSpan[] NoDelay = { TimeSpan.Zero, TimeSpan.Zero };
+    private const string ValidJson = "{\"current\":{\"temperature_2m\":21.0,\"is_day\":1}}";
+
+    private static HttpResponseMessage Json(HttpStatusCode status) => new(status)
+    {
+        Content = new StringContent(ValidJson, Encoding.UTF8, "application/json")
+    };
+
+    [Fact]
+    public async Task GetWeatherDataAsync_TransientServerError_IsRetriedUntilSuccess()
+    {
+        int calls = 0;
+        var handler = new MockHttpMessageHandler(_ => ++calls < 3 ? Json(HttpStatusCode.ServiceUnavailable) : Json(HttpStatusCode.OK));
+        var apiService = new ApiService(new HttpClient(handler), NoDelay);
+
+        var result = await apiService.GetWeatherDataAsync(0, 0);
+
+        calls.Should().Be(3);
+        result.Current!.Temperature2m.Should().Be(21.0);
+    }
+
+    [Fact]
+    public async Task GetWeatherDataAsync_NetworkError_IsRetried()
+    {
+        int calls = 0;
+        var handler = new MockHttpMessageHandler(_ => ++calls == 1
+            ? throw new HttpRequestException("Simulated network failure")
+            : Json(HttpStatusCode.OK));
+        var apiService = new ApiService(new HttpClient(handler), NoDelay);
+
+        var result = await apiService.GetWeatherDataAsync(0, 0);
+
+        calls.Should().Be(2);
+        result.Current!.Temperature2m.Should().Be(21.0);
+    }
+
+    [Fact]
+    public async Task GetWeatherDataAsync_PersistentServerError_GivesUpAfterConfiguredRetries()
+    {
+        int calls = 0;
+        var handler = new MockHttpMessageHandler(_ => { calls++; return Json(HttpStatusCode.InternalServerError); });
+        var apiService = new ApiService(new HttpClient(handler), NoDelay);
+
+        await FluentActions.Invoking(() => apiService.GetWeatherDataAsync(0, 0))
+            .Should().ThrowAsync<HttpRequestException>();
+
+        calls.Should().Be(3); // 1 attempt + 2 retries
+    }
+
+    [Fact]
+    public async Task GetWeatherDataAsync_ClientError_IsNotRetried()
+    {
+        int calls = 0;
+        var handler = new MockHttpMessageHandler(_ => { calls++; return Json(HttpStatusCode.BadRequest); });
+        var apiService = new ApiService(new HttpClient(handler), NoDelay);
+
+        await FluentActions.Invoking(() => apiService.GetWeatherDataAsync(0, 0))
+            .Should().ThrowAsync<HttpRequestException>();
+
+        calls.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetWeatherDataAsync_EmptyRetryDelays_DisablesRetries()
+    {
+        int calls = 0;
+        var handler = new MockHttpMessageHandler(_ => { calls++; return Json(HttpStatusCode.InternalServerError); });
+        var apiService = new ApiService(new HttpClient(handler), Array.Empty<TimeSpan>());
+
+        await FluentActions.Invoking(() => apiService.GetWeatherDataAsync(0, 0))
+            .Should().ThrowAsync<HttpRequestException>();
+
+        calls.Should().Be(1);
     }
 }

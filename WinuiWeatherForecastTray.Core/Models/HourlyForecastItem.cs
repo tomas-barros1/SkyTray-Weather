@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace WinuiWeatherForecastTray.Models;
 
@@ -17,6 +18,7 @@ public class HourlyForecastItem
     public double Temperature { get; set; }
 
     /// <summary>Rounded temperature string with degree symbol (e.g. "22°").</summary>
+    [JsonIgnore]
     public string DisplayTemperature => $"{Math.Round(Temperature)}°";
 
     /// <summary>Condition emoji icon (e.g. "🌧️").</summary>
@@ -29,5 +31,6 @@ public class HourlyForecastItem
     public double RainChance { get; set; }
 
     /// <summary>Tooltip text displayed when hovering over the hourly slot card.</summary>
+    [JsonIgnore]
     public string TooltipText => $"{FormattedTime} — {ConditionText}\n{DisplayTemperature} ({Math.Round(RainChance)}%)";
 }

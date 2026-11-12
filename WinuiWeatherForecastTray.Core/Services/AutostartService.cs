@@ -34,6 +34,15 @@ public sealed class AutostartService : IAutostartService
     }
 
     /// <inheritdoc/>
+    public void RefreshAutostartPath()
+    {
+        if (IsAutostartEnabled())
+        {
+            SetAutostart(true);
+        }
+    }
+
+    /// <inheritdoc/>
     public void SetAutostart(bool enable)
     {
         try
@@ -52,6 +61,7 @@ public sealed class AutostartService : IAutostartService
                                 throw new ArgumentException("Process path must not contain double-quote characters.", nameof(exePath));
 
                             key.SetValue(AppName, $"\"{exePath}\"");
+                            key.DeleteValue(LegacyAppName, false);
                         }
                     }
                     else
