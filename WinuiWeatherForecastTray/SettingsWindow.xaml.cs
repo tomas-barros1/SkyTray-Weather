@@ -15,21 +15,23 @@ namespace WinuiWeatherForecastTray
 {
     public sealed partial class SettingsWindow : Window
     {
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
-
-        private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
-        private const int DWMWCP_ROUND = 2;
+        // Window size in device-independent pixels; converted to physical pixels per monitor DPI.
+        private const int WindowWidthDips = 360;
+        private const int WindowHeightDips = 300;
 
         private readonly IAutostartService _autostartService;
         private readonly ISettingsService _settingsService;
         private readonly ILocationCacheService _locationCacheService;
+        private readonly IForecastCacheService _forecastCacheService;
         private readonly II18nService _i18nService;
         private IntPtr _hwnd;
         private AppWindow _appWindow;
         private bool _isInitializing = true;
 
         public event EventHandler? SettingsChanged;
+
+        /// <summary>Raised after the location and forecast caches were cleared.</summary>
+        public event EventHandler? CacheCleared;
 
         public SettingsWindow(II18nService i18nService)
         {
@@ -39,6 +41,7 @@ namespace WinuiWeatherForecastTray
             _autostartService = new AutostartService();
             _settingsService = new SettingsService();
             _locationCacheService = new LocationCacheService();
+            _forecastCacheService = new ForecastCacheService();
 
             _hwnd = WindowNative.GetWindowHandle(this);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(_hwnd);
@@ -53,34 +56,8 @@ namespace WinuiWeatherForecastTray
 
         private void ConfigureWindow()
         {
-            ExtendsContentIntoTitleBar = true;
-
-            if (_appWindow != null)
-            {
-                _appWindow.Resize(new SizeInt32(360, 300));
-
-                var presenter = _appWindow.Presenter as OverlappedPresenter;
-                if (presenter != null)
-                {
-                    presenter.IsResizable = false;
-                    presenter.IsMinimizable = false;
-                    presenter.IsMaximizable = false;
-                    presenter.IsAlwaysOnTop = true;
-                    presenter.SetBorderAndTitleBar(false, false);
-                }
-            }
-
-            if (DesktopAcrylicController.IsSupported())
-            {
-                SystemBackdrop = new DesktopAcrylicBackdrop();
-            }
-            else if (MicaController.IsSupported())
-            {
-                SystemBackdrop = new MicaBackdrop();
-            }
-
-            int cornerPref = DWMWCP_ROUND;
-            DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPref, sizeof(int));
+            PopupWindowHelper.ApplyChrome(this, _hwnd, _appWindow);
+            PopupWindowHelper.ResizeToDips(_hwnd, _appWindow, WindowWidthDips, WindowHeightDips);
 
             CenterOnScreen();
         }
@@ -93,10 +70,9 @@ namespace WinuiWeatherForecastTray
             var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
             if (displayArea != null)
             {
-                int width = 360;
-                int height = 300;
-                int x = displayArea.WorkArea.X + (displayArea.WorkArea.Width - width) / 2;
-                int y = displayArea.WorkArea.Y + (displayArea.WorkArea.Height - height) / 2;
+                SizeInt32 size = _appWindow.Size;
+                int x = displayArea.WorkArea.X + (displayArea.WorkArea.Width - size.Width) / 2;
+                int y = displayArea.WorkArea.Y + (displayArea.WorkArea.Height - size.Height) / 2;
 
                 _appWindow.Move(new PointInt32(x, y));
             }
@@ -146,9 +122,11 @@ namespace WinuiWeatherForecastTray
         private void BtnClearCache_Click(object sender, RoutedEventArgs e)
         {
             _locationCacheService.ClearCache();
+            // The saved forecast belongs to the old location, so it must go too.
+            _forecastCacheService.Clear();
             TxtCacheStatus.Text = _i18nService.GetString("CacheCleared", "Location cache cleared successfully!");
             TxtCacheStatus.Visibility = Visibility.Visible;
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            CacheCleared?.Invoke(this, EventArgs.Empty);
         }
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)

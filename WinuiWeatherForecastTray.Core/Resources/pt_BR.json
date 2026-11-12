@@ -17,6 +17,7 @@
   "UpdatedAt": "Atualizado às {0}",
   "OfflineUpdatedAt": "Offline · atualizado às {0}",
   "FetchFailed": "Não foi possível carregar o clima",
+  "Retry": "Tentar novamente",
   "HumidityUnit": "umidade",
   "WindUnit": "vento",
   "Settings": "Configurações",

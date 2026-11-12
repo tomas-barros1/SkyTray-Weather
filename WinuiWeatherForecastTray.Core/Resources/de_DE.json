@@ -17,6 +17,7 @@
   "UpdatedAt": "Aktualisiert um {0}",
   "OfflineUpdatedAt": "Offline · aktualisiert um {0}",
   "FetchFailed": "Wetterdaten konnten nicht geladen werden",
+  "Retry": "Erneut versuchen",
   "HumidityUnit": "Feuchtigkeit",
   "WindUnit": "Wind",
   "Settings": "Einstellungen",

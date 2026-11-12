@@ -17,6 +17,7 @@
   "UpdatedAt": "Mis à jour à {0}",
   "OfflineUpdatedAt": "Hors ligne · mis à jour à {0}",
   "FetchFailed": "Impossible de charger la météo",
+  "Retry": "Réessayer",
   "HumidityUnit": "humidité",
   "WindUnit": "vent",
   "Settings": "Paramètres",

@@ -12,6 +12,7 @@
         <StackPanel x:Name="LoadingStack" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Visible">
             <ProgressRing x:Name="LoadingRing" IsActive="True" Width="48" Height="48" Margin="0,0,0,12" />
             <TextBlock x:Name="LblLoading" Text="Fetching weather data..." FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
+            <Button x:Name="BtnRetry" Click="BtnRetry_Click" Visibility="Collapsed" HorizontalAlignment="Center" Margin="0,12,0,0" Content="Try again" />
         </StackPanel>
 
         <!-- Main Weather Content -->

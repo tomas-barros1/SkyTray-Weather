@@ -31,9 +31,6 @@ namespace WinuiWeatherForecastTray
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
-
         [DllImport("user32.dll")]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
@@ -41,9 +38,11 @@ namespace WinuiWeatherForecastTray
         private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         private const int GWLP_WNDPROC = -4;
-        private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
-        private const int DWMWCP_ROUND = 2;
 
+        // Panel size in device-independent pixels; converted to physical pixels per monitor DPI.
+        private const int PanelWidthDips = 360;
+        private const int PanelHeightDips = 524;
+        private const int PanelMarginDips = 16;
         private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         private readonly IWeatherService _weatherService;
@@ -121,6 +120,7 @@ namespace WinuiWeatherForecastTray
         private void ApplyLocalizedStrings()
         {
             LblLoading.Text = _i18nService.GetString("FetchingData", "Fetching weather data...");
+            BtnRetry.Content = _i18nService.GetString("Retry", "Try again");
             LblHumidity.Text = $"💧 {_i18nService.GetString("Humidity", "Humidity")}";
             LblWind.Text = $"🌬️ {_i18nService.GetString("Wind", "Wind")}";
             LblCloudCover.Text = $"☁️ {_i18nService.GetString("CloudCover", "Clouds")}";
@@ -138,44 +138,18 @@ namespace WinuiWeatherForecastTray
 
         private void ConfigureWindow()
         {
-            ExtendsContentIntoTitleBar = true;
+            PopupWindowHelper.ApplyChrome(this, _hwnd, _appWindow);
+            PopupWindowHelper.ResizeToDips(_hwnd, _appWindow, PanelWidthDips, PanelHeightDips);
 
-            if (_appWindow != null)
+            _appWindow.IsShownInSwitchers = false;
+            _appWindow.Closing += (sender, args) =>
             {
-                _appWindow.IsShownInSwitchers = false;
-                _appWindow.Resize(new SizeInt32(360, 524));
-
-                var presenter = _appWindow.Presenter as OverlappedPresenter;
-                if (presenter != null)
+                if (!_isExiting)
                 {
-                    presenter.IsResizable = false;
-                    presenter.IsMinimizable = false;
-                    presenter.IsMaximizable = false;
-                    presenter.IsAlwaysOnTop = true;
-                    presenter.SetBorderAndTitleBar(false, false);
+                    args.Cancel = true;
+                    HideWindowToTray();
                 }
-
-                _appWindow.Closing += (sender, args) =>
-                {
-                    if (!_isExiting)
-                    {
-                        args.Cancel = true;
-                        HideWindowToTray();
-                    }
-                };
-            }
-
-            if (DesktopAcrylicController.IsSupported())
-            {
-                SystemBackdrop = new DesktopAcrylicBackdrop();
-            }
-            else if (MicaController.IsSupported())
-            {
-                SystemBackdrop = new MicaBackdrop();
-            }
-
-            int cornerPref = DWMWCP_ROUND;
-            DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPref, sizeof(int));
+            };
 
             PositionPopupNearTray();
         }
@@ -188,10 +162,11 @@ namespace WinuiWeatherForecastTray
             var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
             if (displayArea != null)
             {
-                int width = 360;
-                int height = 524;
-                int x = displayArea.WorkArea.X + displayArea.WorkArea.Width - width - 16;
-                int y = displayArea.WorkArea.Y + displayArea.WorkArea.Height - height - 16;
+                // Use the real (already DPI-scaled) window size so the popup stays inside the work area.
+                SizeInt32 size = _appWindow.Size;
+                int margin = (int)Math.Round(PanelMarginDips * PopupWindowHelper.GetScale(_hwnd));
+                int x = displayArea.WorkArea.X + displayArea.WorkArea.Width - size.Width - margin;
+                int y = displayArea.WorkArea.Y + displayArea.WorkArea.Height - size.Height - margin;
 
                 _appWindow.Move(new PointInt32(x, y));
             }
@@ -209,6 +184,13 @@ namespace WinuiWeatherForecastTray
             if (msg == TrayIconManager.WM_TRAYICON)
             {
                 _trayIconManager.HandleTrayMessage(lParam.ToInt32());
+                return IntPtr.Zero;
+            }
+
+            // Explorer restarted (or finished starting): our tray icon was dropped, add it back.
+            if (msg == TrayIconManager.WM_TASKBARCREATED)
+            {
+                _trayIconManager?.RestoreIcon();
                 return IntPtr.Zero;
             }
 
@@ -292,6 +274,7 @@ namespace WinuiWeatherForecastTray
         {
             LoadingRing.IsActive = true;
             LoadingRing.Visibility = Visibility.Visible;
+            BtnRetry.Visibility = Visibility.Collapsed;
             LblLoading.Text = _i18nService.GetString("FetchingData", "Fetching weather data...");
             LoadingStack.Visibility = Visibility.Visible;
             ContentGrid.Visibility = Visibility.Collapsed;
@@ -310,6 +293,7 @@ namespace WinuiWeatherForecastTray
             string message = _i18nService.GetString("FetchFailed", "Couldn't load weather data");
             LoadingRing.IsActive = false;
             LoadingRing.Visibility = Visibility.Collapsed;
+            BtnRetry.Visibility = Visibility.Visible;
             LblLoading.Text = message;
             LoadingStack.Visibility = Visibility.Visible;
             ContentGrid.Visibility = Visibility.Collapsed;
@@ -408,10 +392,18 @@ namespace WinuiWeatherForecastTray
                 {
                     _settingsWindow = new SettingsWindow(_i18nService);
                     _settingsWindow.SettingsChanged += (s, args) => UpdateRefreshTimerInterval();
+                    _settingsWindow.CacheCleared += (s, args) => OnCachesCleared();
                     _settingsWindow.Closed += (s, args) => _settingsWindow = null;
                 }
                 _settingsWindow.Activate();
             });
+        }
+
+        /// <summary>The cached forecast belonged to the old location: drop it and fetch fresh data.</summary>
+        private void OnCachesCleared()
+        {
+            _currentForecast = null;
+            _ = RefreshWeatherAsync();
         }
 
         private void TrayIconManager_ExitRequested(object? sender, EventArgs e)
@@ -450,6 +442,8 @@ namespace WinuiWeatherForecastTray
         {
             if (_hwnd != IntPtr.Zero)
             {
+                // The monitor DPI may have changed since the last time the panel was shown.
+                PopupWindowHelper.ResizeToDips(_hwnd, _appWindow, PanelWidthDips, PanelHeightDips);
                 PositionPopupNearTray();
                 ShowWindow(_hwnd, SW_SHOW);
                 SetForegroundWindow(_hwnd);
@@ -457,6 +451,11 @@ namespace WinuiWeatherForecastTray
         }
 
         private void BtnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            _ = RefreshWeatherAsync();
+        }
+
+        private void BtnRetry_Click(object sender, RoutedEventArgs e)
         {
             _ = RefreshWeatherAsync();
         }
