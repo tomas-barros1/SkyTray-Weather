@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Compact guidance for OpenCode sessions working in `SkyTray Weather` (WinUI 3 system-tray weather app, .NET 8).
+Compact guidance for OpenCode sessions working in `SkyTray Weather` (WinUI 3 system-tray weather app, .NET 10).
 
 ## Repository at a glance
 
@@ -12,7 +12,7 @@ Three .NET projects, no `*.sln` (only the XML-format `WinuiWeatherForecastTray.s
 | `WinuiWeatherForecastTray` | `WinuiWeatherForecastTray/` | WinUI 3 unpackaged app, XAML, tray renderer |
 | `WinuiWeatherForecastTray.Tests` | `WinuiWeatherForecastTray.Tests/` | xUnit + Moq + FluentAssertions |
 
-All target `net8.0-windows10.0.19041.0` with `<Nullable>enable</Nullable>`. UI app is unpackaged (`WindowsPackageType=None`).
+All target `net10.0-windows10.0.19041.0` with `<Nullable>enable</Nullable>`. UI app is unpackaged (`WindowsPackageType=None`).
 
 ## Solution File
 
@@ -65,7 +65,7 @@ CI in `.github/workflows/build-and-release.yml` follows the same pattern. Publis
 ## Release flow (verified from `.github/workflows/build-and-release.yml`)
 
 1. Trigger: push to `main`, PR to `main`, or tag matching `v*`.
-2. Runs on `windows-latest`, .NET SDK `8.0.x`.
+2. Runs on `windows-latest`, .NET SDK `10.0.x`.
 3. Steps in order: restore → **test** → publish `win-x64` self-contained → zip with `Install-SkyTray.ps1` → build the Inno Setup installer (`installer.iss`) → upload artifacts (`SkyTray-Weather-win-x64.zip` and `Output/SkyTrayWeather-Setup-x64.exe`, 30-day retention).
 4. On `v*` tag push: creates a GitHub Release named `SkyTray Weather Release <tag>` with the zip **and** the installer attached.
 

@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8.0" />
+  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10.0" />
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D4?logo=windows&logoColor=white" alt="Platform" />
   <img src="https://img.shields.io/badge/UI-WinUI%203-0078D4?logo=windows11&logoColor=white" alt="WinUI 3" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License" />
@@ -80,7 +80,7 @@ O aplicativo será instalado em `%LocalAppData%\SkyTrayWeather` com atalho criad
 ### 🗂️ Estrutura do Projeto
 
 ```text
-├── WinuiWeatherForecastTray.Core/      # Biblioteca de domínio .NET 8 (DTOs, Serviços, i18n, APIs)
+├── WinuiWeatherForecastTray.Core/      # Biblioteca de domínio .NET 10 (DTOs, Serviços, i18n, APIs)
 ├── WinuiWeatherForecastTray/           # Aplicação UI WinUI 3 (Windows App SDK, Renderizador Tray, XAML)
 ├── WinuiWeatherForecastTray.Tests/     # Suíte de Testes Automatizados xUnit (unitários e de integração)
 ├── installer.iss                       # Instalador Inno Setup (SkyTrayWeather-Setup-x64.exe)

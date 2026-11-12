@@ -6,7 +6,7 @@ $repoRoot = $PSScriptRoot
 $publishDir = Join-Path $repoRoot "publish"
 
 if (-not (Test-Path $publishDir)) {
-    $publishDir = Join-Path $repoRoot "WinuiWeatherForecastTray\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish"
+    $publishDir = Join-Path $repoRoot "WinuiWeatherForecastTray\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish"
 }
 
 Write-Host "Installing SkyTray Weather to $installDir..." -ForegroundColor Cyan
