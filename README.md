@@ -22,27 +22,28 @@
 
 **SkyTray Weather** é um aplicativo desktop nativo para Windows 11/10 projetado para rodar de forma discreta, elegante e ultra-rápida na bandeja do sistema (System Tray).
 
-Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica), o SkyTray exibe um painel completo com 11 métricas meteorológicas em tempo real, previsão para as próximas 6 horas, suporte a internacionalização (Português e Inglês) e ícones vetoriais de alta definição na barra de tarefas.
+Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica), o SkyTray exibe um painel completo com 11 métricas meteorológicas em tempo real, previsão para as próximas 6 horas, suporte a internacionalização (Português, Inglês, Espanhol, Francês e Alemão) e ícones vetoriais de alta definição na barra de tarefas.
 
 ---
 
 ### 🌟 Funcionalidades
 
 - ☀️ **Ícone Vetorial Dinâmico no Tray**: Renderização vetorial GDI+ nativa em alta definição (32bpp ARGB) que altera o ícone de acordo com o tempo (Sol, Lua, Parcialmente Nublado, Chuva, Tempestade, Neve).
-- 📍 **Localização Automática**: Geolocalização nativa do Windows com fallback automático via IP para nunca deixar você sem previsão.
+- 📍 **Localização Automática**: Geolocalização nativa do Windows com fallback automático via IP e, se tudo falhar, a última localização conhecida.
+- 📴 **Funciona Offline**: A última previsão é salva em disco e exibida como "Offline · atualizado às HH:mm" quando a rede cai (até 6 horas). Falhas temporárias de rede/servidor são repetidas automaticamente.
 - 📊 **Painel com 11 Métricas de Clima**:
   - 🌡️ Temperatura e Sensação Térmica
   - ☁️ Nebulosidade (%)
   - 💧 Umidade (%)
   - ⏲️ Pressão Atmosférica (hPa)
   - 🌬️ Velocidade do Vento (km/h)
-  - ☔ Precipitação / Chuva (mm/h)
+  - ☔ Probabilidade de Chuva (%)
   - 🍃 Qualidade do Ar (AQI)
-  - ☀️ Índice UV Max
+  - ☀️ Índice UV máximo do dia
   - 🌅 Horário do Nascer do Sol
   - 🌇 Horário do Pôr do Sol
   - 🕒 Previsão Hora a Hora para as Próximas 6 Horas
-- 🌐 **Internacionalização (i18n)**: Detecção automática do idioma do sistema operacional com dicionários JSON (`pt_BR.json` e `en_US.json`).
+- 🌐 **Internacionalização (i18n)**: Detecção automática do idioma do sistema operacional com dicionários JSON (`pt_BR`, `en_US`, `es_ES`, `fr_FR` e `de_DE`).
 - ⚙️ **Configurações e Inicialização**:
   - Opção para **Iniciar com o Windows** (Registro `HKCU\...\Run`).
   - Intervalo de Atualização Personalizável (5 min, 10 min, 15 min [padrão], 30 min, 60 min).
@@ -52,14 +53,14 @@ Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica),
 
 ### 🚀 Instalação Rápida (1-Clique)
 
-1. Vá até a seção **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** e baixe o `SkyTray-Weather-win-x64.zip`.
-2. Extraia o conteúdo e execute o script `Install-SkyTray.ps1` no PowerShell:
+1. Vá até a seção **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** e baixe o **`SkyTrayWeather-Setup-x64.exe`** (instalador, não exige administrador) — ou o `SkyTray-Weather-win-x64.zip`.
+2. Execute o instalador. Se preferir o zip, extraia e rode o script no PowerShell:
 
 ```powershell
-powershell -File Install-SkyTray.ps1
+powershell -ExecutionPolicy Bypass -File Install-SkyTray.ps1
 ```
 
-O aplicativo será instalado automaticamente em `%LocalAppData%\SkyTrayWeather` com atalho criado no seu **Menu Iniciar**.
+O aplicativo será instalado em `%LocalAppData%\SkyTrayWeather` com atalho criado no seu **Menu Iniciar**.
 
 ---
 
@@ -76,11 +77,14 @@ O aplicativo será instalado automaticamente em `%LocalAppData%\SkyTrayWeather` 
 ---
 
 
+### 🗂️ Estrutura do Projeto
+
 ```text
 ├── WinuiWeatherForecastTray.Core/      # Biblioteca de domínio .NET 8 (DTOs, Serviços, i18n, APIs)
 ├── WinuiWeatherForecastTray/           # Aplicação UI WinUI 3 (Windows App SDK, Renderizador Tray, XAML)
-├── WinuiWeatherForecastTray.Tests/     # Suíte de Testes Automatizados xUnit (16 testes unitários e de integração)
-├── Install-SkyTray.ps1                 # Script de instalação de 1-clique para Windows
+├── WinuiWeatherForecastTray.Tests/     # Suíte de Testes Automatizados xUnit (unitários e de integração)
+├── installer.iss                       # Instalador Inno Setup (SkyTrayWeather-Setup-x64.exe)
+├── Install-SkyTray.ps1                 # Script de instalação alternativo (a partir do zip)
 └── .github/workflows/                  # Automação CI/CD GitHub Actions
 ```
 
@@ -94,27 +98,28 @@ O aplicativo será instalado automaticamente em `%LocalAppData%\SkyTrayWeather` 
 
 **SkyTray Weather** is a native Windows 11/10 desktop application designed to run quietly, elegantly, and lightning-fast directly from your System Tray.
 
-Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray delivers a full dashboard with 11 real-time weather metrics, next 6-hour forecast, internationalization (Portuguese & English), and crisp vector tray icons.
+Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray delivers a full dashboard with 11 real-time weather metrics, next 6-hour forecast, internationalization (Portuguese, English, Spanish, French & German), and crisp vector tray icons.
 
 ---
 
 ### 🌟 Features
 
 - ☀️ **Dynamic Vector Tray Icons**: Native GDI+ 32bpp ARGB anti-aliased vector rendering that dynamically switches tray icons according to weather condition (Sun, Moon, Partly Cloudy, Rain, Thunderstorm, Snow).
-- 📍 **Automatic Location Detection**: Windows native Geolocator with automatic IP geolocation fallback.
+- 📍 **Automatic Location Detection**: Windows native Geolocator with automatic IP geolocation fallback and, if everything fails, the last known location.
+- 📴 **Works Offline**: The last forecast is saved to disk and shown as "Offline · updated HH:mm" when the network is down (up to 6 hours). Transient network/server errors are retried automatically.
 - 📊 **11 Weather Metrics Dashboard**:
   - 🌡️ Temperature & Feels Like Temperature
   - ☁️ Cloud Cover (%)
   - 💧 Humidity (%)
-  - ⏲️ Sea Level Pressure (hPa)
+  - ⏲️ Sea-Level Pressure (hPa)
   - 🌬️ Wind Speed (km/h)
-  - ☔ Rain / Precipitation (mm/h)
+  - ☔ Chance of Rain (%)
   - 🍃 Air Quality Index (US AQI)
-  - ☀️ Max UV Index
+  - ☀️ Max UV Index of the day
   - 🌅 Sunrise Time
   - 🌇 Sunset Time
   - 🕒 Next 6 Hours Forecast
-- 🌐 **Internationalization (i18n)**: Auto-detects OS UI language with JSON translation dictionaries (`pt_BR.json` and `en_US.json`).
+- 🌐 **Internationalization (i18n)**: Auto-detects OS UI language with JSON translation dictionaries (`pt_BR`, `en_US`, `es_ES`, `fr_FR` and `de_DE`).
 - ⚙️ **Settings & Autostart**:
   - **Start with Windows** autostart toggle (`HKCU\...\Run`).
   - Configurable Refresh Interval (5 min, 10 min, 15 min [default], 30 min, 60 min).
@@ -124,14 +129,14 @@ Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray 
 
 ### 🚀 Quick 1-Click Installation
 
-1. Go to the **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** page and download `SkyTray-Weather-win-x64.zip`.
-2. Extract the ZIP archive and run `Install-SkyTray.ps1` in PowerShell:
+1. Go to the **[Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases)** page and download **`SkyTrayWeather-Setup-x64.exe`** (installer, no admin rights needed) — or `SkyTray-Weather-win-x64.zip`.
+2. Run the installer. If you prefer the ZIP, extract it and run the script in PowerShell:
 
 ```powershell
-powershell -File Install-SkyTray.ps1
+powershell -ExecutionPolicy Bypass -File Install-SkyTray.ps1
 ```
 
-The application will automatically install to `%LocalAppData%\SkyTrayWeather` and create a Start Menu shortcut.
+The application installs to `%LocalAppData%\SkyTrayWeather` and creates a Start Menu shortcut.
 
 ---
 

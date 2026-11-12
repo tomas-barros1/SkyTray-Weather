@@ -12,7 +12,12 @@ if (-not (Test-Path $publishDir)) {
 Write-Host "Installing SkyTray Weather to $installDir..." -ForegroundColor Cyan
 
 # Stop any running process
-Stop-Process -Name "WinuiWeatherForecastTray" -Force -ErrorAction SilentlyContinue
+# (also the name used before the "Wheater" -> "Weather" rename)
+Stop-Process -Name "WinuiWeatherForecastTray", "WinuiWheaterForecastTray" -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 500
+
+# Remove leftovers from builds that used the old (misspelled) executable name
+Remove-Item -Path "$installDir\WinuiWheaterForecastTray.*" -Force -ErrorAction SilentlyContinue
 
 # Ensure directory exists
 if (-not (Test-Path $installDir)) {
