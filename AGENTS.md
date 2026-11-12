@@ -75,7 +75,7 @@ To cut a release locally without CI: publish, zip, and upload — see commands a
 
 - `MainWindow.xaml.cs` defines its own `WndProc` and uses `SetWindowLongPtr` to subclass the window for tray callbacks. Any change to message handling must preserve the chain to `_oldWndProc` or tray interaction breaks silently.
 - `I18nService` uses `OrdinalIgnoreCase` on the dictionary but the JSON is parsed with default options (case-sensitive) — the lookup handles it, but JSON keys must remain lowercase.
-- The README's data-source table is the canonical license list (Open-Meteo, BigDataCloud, ipapi.co). When adding a new third-party endpoint, update both the README and the registry constants in `AutostartService` if it writes paths.
+- The README's data-source table is the canonical license list (Open-Meteo, BigDataCloud, ipapi.co, ipwho.is). When adding a new third-party endpoint, update both the README and the registry constants in `AutostartService` if it writes paths.
 - `Math.Round(temperature)` calls in computed properties (`CurrentWeatherInfo.SummaryText`, `HourlyForecastItem.DisplayTemperature`) use the default culture — fine for `pt-BR`/`en-US`, but the decimal separator will vary elsewhere. Use `Math.Round(x, MidpointRounding.AwayFromZero)` with `CultureInfo.InvariantCulture` if touching these.
 - The Open-Meteo precipitation display is `precipitation_probability`, not instantaneous mm — the README calls this out explicitly; preserve the contract.
 
@@ -90,3 +90,11 @@ To cut a release locally without CI: publish, zip, and upload — see commands a
 ## Legacy names (kept on purpose)
 
 The registry key `HKCU\Software\WinuiWheaterForecastTray` (settings) and the legacy `Run` value `WinuiWheaterForecastTray` keep the old misspelling so existing users do not lose settings and old autostart entries are cleaned up. `AutostartService.RefreshAutostartPath()` runs at startup and re-points the `Run` entry to the current executable; `installer.iss` and `Install-SkyTray.ps1` delete files named `WinuiWheaterForecastTray.*` left from older installs.
+
+## Windows, tray and location (review follow-ups)
+
+- **DPI:** `AppWindow.Resize` takes *physical pixels*, XAML works in DIPs. Never hard-code pixel sizes: use `PopupWindowHelper.ResizeToDips(...)` (and read `_appWindow.Size` for positioning). `PopupWindowHelper.ApplyChrome` is the single place for the borderless/always-on-top/backdrop/rounded-corner setup shared by `MainWindow` and `SettingsWindow`.
+- **Tray icon:** `TrayIconManager` re-adds the icon when Explorer broadcasts `TaskbarCreated` (`RestoreIcon`, wired in `MainWindow.CustomWndProc`) and `Update` retries `NIM_ADD` if the first add failed (taskbar not ready right after login).
+- **First-load failure:** the panel shows the error text plus a "Try again" button (`BtnRetry`); the header with the refresh button lives inside `ContentGrid`, which is collapsed in that state.
+- **Clear cache** (Settings) clears the location cache *and* the saved forecast, then `MainWindow` drops its in-memory forecast and refetches (`SettingsWindow.CacheCleared`).
+- **IP geolocation:** `ipapi.co` then `ipwho.is`, both HTTPS. Coordinates are untrusted network input: `IpLocationService.ValidateCoordinates` rejects missing (null), NaN and out-of-range values; an explicit `(0, 0)` is still accepted on purpose (see the tests). Never add a cleartext-HTTP provider.

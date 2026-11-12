@@ -71,6 +71,7 @@ O aplicativo será instalado em `%LocalAppData%\SkyTrayWeather` com atalho criad
 | **[Open-Meteo](https://open-meteo.com/)** | Previsão do tempo (temperatura, vento, precipitação, UV, etc.) e qualidade do ar | Grátis, sem API key |
 | **[BigDataCloud](https://www.bigdatacloud.com/)** | Geocodificação reversa (coordenadas → nome da cidade) | Grátis |
 | **[ipapi.co](https://ipapi.co/)** | Fallback de geolocalização via IP quando a localização nativa não está disponível | Grátis |
+| **[ipwho.is](https://ipwho.is/)** | Segundo fallback de geolocalização via IP (HTTPS) | Grátis |
 
 > O dado de **"☔ Chuva"** exibido no painel é a **probabilidade de precipitação** (`precipitation_probability`) da hora atual, fornecida pela Open-Meteo — não a leitura instantânea em mm.
 
@@ -147,6 +148,7 @@ The application installs to `%LocalAppData%\SkyTrayWeather` and creates a Start 
 | **[Open-Meteo](https://open-meteo.com/)** | Weather forecast (temperature, wind, precipitation probability, UV index, etc.) and air quality | Free, no API key required |
 | **[BigDataCloud](https://www.bigdatacloud.com/)** | Reverse geocoding (coordinates → city name) | Free |
 | **[ipapi.co](https://ipapi.co/)** | IP-based geolocation fallback when native Windows location is unavailable | Free |
+| **[ipwho.is](https://ipwho.is/)** | Second IP-based geolocation fallback (HTTPS) | Free |
 
 > The **"☔ Rain"** panel value shows the **precipitation probability** (`precipitation_probability`) for the current hour from Open-Meteo — not the instantaneous mm accumulation.
 

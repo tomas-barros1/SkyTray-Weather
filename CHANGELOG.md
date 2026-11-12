@@ -4,6 +4,19 @@ All notable changes to SkyTray Weather are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 Older releases: see [GitHub Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases).
 
+## [1.5.2] - 2026-11-12
+
+### Fixed
+- **Tray icon could be missing for the whole session**: if the first registration failed (taskbar not ready right after login) it was never retried, and the icon was lost whenever Explorer restarted. The icon is now re-added on `TaskbarCreated` and on the next update.
+- **Panel cut off on scaled displays**: window sizes were applied in physical pixels, so at 125%/150% scaling the content was clipped. Sizes are now defined in DIPs and scaled to the monitor DPI (also used for positioning near the tray).
+- **No way to retry after a failed first load**: the error state now has a "Try again" button (the refresh button was hidden together with the content).
+- **"Clear cache" left the saved forecast behind**, so an offline start could show the previous location's weather. It now clears both caches and refreshes immediately.
+- **IP geolocation hardening**: coordinates from IP providers are validated (missing, NaN or out-of-range values are rejected and never cached), and the cleartext-HTTP fallback (`ip-api.com`) was replaced by **ipwho.is over HTTPS**.
+
+### Changed
+- Window setup shared by the weather panel and the settings window moved to `PopupWindowHelper` (removes duplicated code).
+- README lists ipwho.is in the data sources; `AGENTS.md` documents the DPI, tray and location rules.
+
 ## [1.5.1] - 2026-11-11
 
 ### Changed
