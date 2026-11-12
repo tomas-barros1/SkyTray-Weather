@@ -11,6 +11,12 @@ public sealed class TrayIconManager : IDisposable
     private const uint WM_USER = 0x0400;
     public const uint WM_TRAYICON = WM_USER + 1;
 
+    /// <summary>
+    /// Broadcast by Explorer whenever the taskbar is (re)created, e.g. after an Explorer crash/restart.
+    /// Tray icons are lost at that point and must be added again.
+    /// </summary>
+    public static readonly uint WM_TASKBARCREATED = RegisterWindowMessageW("TaskbarCreated");
+
     private const uint NIM_ADD = 0x00000000;
     private const uint NIM_MODIFY = 0x00000001;
     private const uint NIM_DELETE = 0x00000002;
@@ -33,6 +39,9 @@ public sealed class TrayIconManager : IDisposable
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpData);
 
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern uint RegisterWindowMessageW(string lpString);
+
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern IntPtr CreatePopupMenu();
 
@@ -54,6 +63,7 @@ public sealed class TrayIconManager : IDisposable
     private IntPtr _hwnd;
     private IntPtr _currentHIcon = IntPtr.Zero;
     private bool _isAdded = false;
+    private string _lastTooltip = string.Empty;
     private readonly II18nService _i18nService;
 
     public event EventHandler? TrayIconClicked;
@@ -70,7 +80,17 @@ public sealed class TrayIconManager : IDisposable
     {
         _hwnd = hwnd;
         _currentHIcon = TrayIconHelper.CreateEmojiIcon(initialEmoji);
+        _lastTooltip = initialTooltip;
 
+        AddIcon();
+    }
+
+    /// <summary>
+    /// Registers the icon with the shell using the current icon and tooltip. This can fail when the taskbar
+    /// does not exist yet (autostart right after login); <see cref="Update"/> then retries on its next call.
+    /// </summary>
+    private void AddIcon()
+    {
         var nid = new NOTIFYICONDATA
         {
             cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATA>(),
@@ -79,17 +99,41 @@ public sealed class TrayIconManager : IDisposable
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             uCallbackMessage = WM_TRAYICON,
             hIcon = _currentHIcon,
-            szTip = TruncateTooltip(initialTooltip)
+            szTip = TruncateTooltip(_lastTooltip)
         };
 
         _isAdded = Shell_NotifyIcon(NIM_ADD, ref nid);
     }
 
+    /// <summary>Adds the icon again after the taskbar was recreated (see <see cref="WM_TASKBARCREATED"/>).</summary>
+    public void RestoreIcon()
+    {
+        if (_hwnd == IntPtr.Zero) return;
+
+        AddIcon();
+    }
+
     public void Update(string emoji, string tooltipText)
     {
-        if (!_isAdded || _hwnd == IntPtr.Zero) return;
+        if (_hwnd == IntPtr.Zero) return;
 
         IntPtr newHIcon = TrayIconHelper.CreateEmojiIcon(emoji);
+        _lastTooltip = tooltipText;
+
+        if (!_isAdded)
+        {
+            // The first NIM_ADD failed (taskbar not ready yet): try again with the new icon instead of
+            // staying without a tray icon for the whole session.
+            IntPtr previousHIcon = _currentHIcon;
+            _currentHIcon = newHIcon;
+            AddIcon();
+
+            if (previousHIcon != IntPtr.Zero)
+            {
+                TrayIconHelper.DestroyIcon(previousHIcon);
+            }
+            return;
+        }
 
         var nid = new NOTIFYICONDATA
         {
