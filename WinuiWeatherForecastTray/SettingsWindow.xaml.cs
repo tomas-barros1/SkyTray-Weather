@@ -17,7 +17,7 @@ namespace WinuiWeatherForecastTray
     {
         // Window size in device-independent pixels; converted to physical pixels per monitor DPI.
         private const int WindowWidthDips = 360;
-        private const int WindowHeightDips = 300;
+        private const int WindowHeightDips = 346;
 
         private readonly IAutostartService _autostartService;
         private readonly ISettingsService _settingsService;
@@ -85,11 +85,13 @@ namespace WinuiWeatherForecastTray
             TxtRefreshInterval.Text = _i18nService.GetString("RefreshInterval", "Refresh interval:");
             TxtLocationCache.Text = _i18nService.GetString("LocationCache", "Location Cache:");
             TxtClearCache.Text = _i18nService.GetString("ClearCache", "Clear Cache");
+            TxtHoverCard.Text = _i18nService.GetString("HoverCard", "Show weather card when hovering the tray icon");
         }
 
         private void LoadSettings()
         {
             ChkAutostart.IsChecked = _autostartService.IsAutostartEnabled();
+            ChkHoverCard.IsChecked = _settingsService.GetHoverCardEnabled();
 
             int currentMinutes = _settingsService.GetRefreshIntervalMinutes();
             foreach (ComboBoxItem item in CmbRefreshInterval.Items)
@@ -106,6 +108,12 @@ namespace WinuiWeatherForecastTray
         {
             bool isChecked = ChkAutostart.IsChecked ?? false;
             _autostartService.SetAutostart(isChecked);
+        }
+
+        private void ChkHoverCard_Click(object sender, RoutedEventArgs e)
+        {
+            _settingsService.SetHoverCardEnabled(ChkHoverCard.IsChecked ?? true);
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void CmbRefreshInterval_SelectionChanged(object sender, SelectionChangedEventArgs e)

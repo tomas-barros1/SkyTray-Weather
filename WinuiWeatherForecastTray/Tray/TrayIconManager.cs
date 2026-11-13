@@ -40,6 +40,9 @@ public sealed class TrayIconManager : IDisposable
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpData);
 
+    [DllImport("shell32.dll")]
+    private static extern int Shell_NotifyIconGetRect(ref NOTIFYICONIDENTIFIER identifier, out RECT iconLocation);
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern uint RegisterWindowMessageW(string lpString);
 
@@ -65,6 +68,7 @@ public sealed class TrayIconManager : IDisposable
     private IntPtr _currentHIcon = IntPtr.Zero;
     private bool _isAdded = false;
     private string _lastTooltip = string.Empty;
+    private bool _classicTooltipEnabled = true;
     private readonly II18nService _i18nService;
 
     public event EventHandler? TrayIconClicked;
@@ -100,10 +104,57 @@ public sealed class TrayIconManager : IDisposable
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             uCallbackMessage = WM_TRAYICON,
             hIcon = _currentHIcon,
-            szTip = TruncateTooltip(_lastTooltip)
+            szTip = CurrentTip()
         };
 
         _isAdded = Shell_NotifyIcon(NIM_ADD, ref nid);
+    }
+
+    /// <summary>The tooltip text to send to the shell: empty while the classic tooltip is turned off.</summary>
+    private string CurrentTip() => _classicTooltipEnabled ? TruncateTooltip(_lastTooltip) : string.Empty;
+
+    /// <summary>
+    /// Turns the classic Windows tooltip on or off. It is turned off while the hover card is enabled,
+    /// otherwise both would appear at the same time.
+    /// </summary>
+    public void SetClassicTooltipEnabled(bool enabled)
+    {
+        if (_classicTooltipEnabled == enabled) return;
+
+        _classicTooltipEnabled = enabled;
+        if (_hwnd == IntPtr.Zero || !_isAdded) return;
+
+        var nid = new NOTIFYICONDATA
+        {
+            cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATA>(),
+            hWnd = _hwnd,
+            uID = 1001,
+            uFlags = NIF_TIP,
+            szTip = CurrentTip()
+        };
+
+        Shell_NotifyIcon(NIM_MODIFY, ref nid);
+    }
+
+    /// <summary>
+    /// Gets the icon's rectangle on screen (physical pixels). Returns <c>false</c> when the shell cannot say
+    /// where the icon is (e.g. it was not added yet); callers should then fall back to the cursor position.
+    /// </summary>
+    public bool TryGetIconRect(out RECT rect)
+    {
+        rect = default;
+        if (_hwnd == IntPtr.Zero || !_isAdded) return false;
+
+        var id = new NOTIFYICONIDENTIFIER
+        {
+            cbSize = (uint)Marshal.SizeOf<NOTIFYICONIDENTIFIER>(),
+            hWnd = _hwnd,
+            uID = 1001,
+            guidItem = Guid.Empty
+        };
+
+        int hr = Shell_NotifyIconGetRect(ref id, out rect);
+        return hr >= 0 && rect.Right > rect.Left && rect.Bottom > rect.Top;
     }
 
     /// <summary>Adds the icon again after the taskbar was recreated (see <see cref="WM_TASKBARCREATED"/>).</summary>
@@ -143,7 +194,7 @@ public sealed class TrayIconManager : IDisposable
             uID = 1001,
             uFlags = NIF_ICON | NIF_TIP,
             hIcon = newHIcon,
-            szTip = TruncateTooltip(tooltipText)
+            szTip = CurrentTip()
         };
 
         Shell_NotifyIcon(NIM_MODIFY, ref nid);

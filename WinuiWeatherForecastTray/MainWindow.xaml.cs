@@ -60,6 +60,7 @@ namespace WinuiWeatherForecastTray
         private bool _hasLoadedOnce = false;
         private int _startupRetryCount = 0;
         private bool _isRefreshing = false;
+        private HoverCardController? _hoverCard;
         private static readonly int[] StartupRetryDelaysSeconds = { 10, 30, 60 };
         private DateTime _lastDeactivatedTime = DateTime.MinValue;
 
@@ -99,6 +100,9 @@ namespace WinuiWeatherForecastTray
             _trayIconManager.TrayIconHovered += TrayIconManager_TrayIconHovered;
             _trayIconManager.SettingsRequested += TrayIconManager_SettingsRequested;
             _trayIconManager.ExitRequested += TrayIconManager_ExitRequested;
+
+            _hoverCard = new HoverCardController(DispatcherQueue, _i18nService, _trayIconManager, () => IsWindowVisible(_hwnd));
+            ApplyHoverCardSetting();
 
             _autoRefreshTimer = new DispatcherTimer();
             _autoRefreshTimer.Tick += (s, e) => _ = RefreshWeatherAsync();
@@ -301,14 +305,7 @@ namespace WinuiWeatherForecastTray
         }
 
         /// <summary>"Updated 14:05" or "Offline · updated 14:05", depending on whether the data is a cached copy.</summary>
-        private string BuildUpdatedLabel(WeatherForecastData data)
-        {
-            string time = data.FetchedAtUtc.ToLocalTime().ToString("t", _i18nService.CurrentFormatProvider);
-            string template = data.IsStale
-                ? _i18nService.GetString("OfflineUpdatedAt", "Offline · updated {0}")
-                : _i18nService.GetString("UpdatedAt", "Updated {0}");
-            return string.Format(template, time);
-        }
+        private string BuildUpdatedLabel(WeatherForecastData data) => WeatherText.UpdatedLabel(_i18nService, data);
 
         private void ScheduleStartupRetry(int delaySeconds)
         {
@@ -347,6 +344,8 @@ namespace WinuiWeatherForecastTray
 
             HourlyItemsControl.ItemsSource = data.HourlyForecast;
 
+            _hoverCard?.Update(data);
+
             string updatedLabel = BuildUpdatedLabel(data);
             TxtUpdated.Text = data.IsStale ? $"⚠ {updatedLabel}" : updatedLabel;
 
@@ -359,6 +358,8 @@ namespace WinuiWeatherForecastTray
         {
             DispatcherQueue.TryEnqueue(() =>
             {
+                _hoverCard?.Dismiss();
+
                 double msSinceDeactivated = (DateTime.UtcNow - _lastDeactivatedTime).TotalMilliseconds;
                 if (msSinceDeactivated < 350)
                 {
@@ -379,10 +380,22 @@ namespace WinuiWeatherForecastTray
 
         private void TrayIconManager_TrayIconHovered(object? sender, EventArgs e)
         {
+            // Opens the hover card after the cursor rests on the icon (ShowWindowToTray positions the panel itself).
             DispatcherQueue.TryEnqueue(() =>
             {
-                PositionPopupNearTray();
+                _hoverCard?.NotifyHover();
             });
+        }
+
+        /// <summary>
+        /// Applies the "hover card" setting. The classic tooltip is only used when the card is off,
+        /// otherwise both would show up at the same time.
+        /// </summary>
+        private void ApplyHoverCardSetting()
+        {
+            bool enabled = _settingsService.GetHoverCardEnabled();
+            _hoverCard?.SetEnabled(enabled);
+            _trayIconManager?.SetClassicTooltipEnabled(!enabled);
         }
 
         private void TrayIconManager_SettingsRequested(object? sender, EventArgs e)
@@ -392,7 +405,7 @@ namespace WinuiWeatherForecastTray
                 if (_settingsWindow == null)
                 {
                     _settingsWindow = new SettingsWindow(_i18nService);
-                    _settingsWindow.SettingsChanged += (s, args) => UpdateRefreshTimerInterval();
+                    _settingsWindow.SettingsChanged += (s, args) => { UpdateRefreshTimerInterval(); ApplyHoverCardSetting(); };
                     _settingsWindow.CacheCleared += (s, args) => OnCachesCleared();
                     _settingsWindow.Closed += (s, args) => _settingsWindow = null;
                 }
@@ -413,6 +426,7 @@ namespace WinuiWeatherForecastTray
             {
                 _isExiting = true;
                 _autoRefreshTimer?.Stop();
+                _hoverCard?.Dispose();
                 _trayIconManager?.Dispose();
                 Application.Current.Exit();
                 Environment.Exit(0);
@@ -443,6 +457,8 @@ namespace WinuiWeatherForecastTray
         {
             if (_hwnd != IntPtr.Zero)
             {
+                _hoverCard?.Dismiss();
+
                 // The monitor DPI may have changed since the last time the panel was shown.
                 PopupWindowHelper.ResizeToDips(_hwnd, _appWindow, PanelWidthDips, PanelHeightDips);
                 PositionPopupNearTray();
@@ -469,6 +485,7 @@ namespace WinuiWeatherForecastTray
         private void MainWindow_Closed(object sender, WindowEventArgs args)
         {
             _autoRefreshTimer?.Stop();
+            _hoverCard?.Dispose();
             _trayIconManager?.Dispose();
         }
     }

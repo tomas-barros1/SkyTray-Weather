@@ -33,6 +33,11 @@
                     <TextBlock x:Name="TxtStartWithWindows" Text="Start with Windows" VerticalAlignment="Center" />
                 </CheckBox>
 
+                <!-- Hover card CheckBox -->
+                <CheckBox x:Name="ChkHoverCard" Click="ChkHoverCard_Click" FontSize="14" FontWeight="Medium" Foreground="{ThemeResource TextFillColorPrimaryBrush}">
+                    <TextBlock x:Name="TxtHoverCard" Text="Show weather card when hovering the tray icon" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </CheckBox>
+
                 <!-- Refresh Interval Selector -->
                 <Grid>
                     <Grid.ColumnDefinitions>

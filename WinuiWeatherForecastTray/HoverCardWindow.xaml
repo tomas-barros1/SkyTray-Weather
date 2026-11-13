@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="WinuiWeatherForecastTray.HoverCardWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WinuiWeatherForecastTray"
+    xmlns:models="using:WinuiWeatherForecastTray.Models"
+    mc:Ignorable="d"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+
+    <!-- Tray hover card. Non-interactive: it never takes focus (see HoverCardWindow.xaml.cs). -->
+    <Grid x:Name="RootGrid" Padding="16,12,16,14" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- City + "updated" label -->
+        <Grid Grid.Row="0" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="TxtCity" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <TextBlock x:Name="TxtUpdated" Grid.Column="1" FontSize="10" VerticalAlignment="Center"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+        </Grid>
+
+        <!-- Icon, temperature and condition -->
+        <Grid Grid.Row="1" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Image x:Name="ImgIcon" Width="56" Height="56" VerticalAlignment="Center" />
+            <TextBlock x:Name="TxtTemp" Grid.Column="1" FontSize="40" FontWeight="SemiBold" VerticalAlignment="Center"
+                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                <TextBlock x:Name="TxtCondition" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                <TextBlock x:Name="TxtFeels" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                <TextBlock x:Name="TxtHighLow" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Humidity / wind / rain -->
+        <Grid Grid.Row="2" ColumnSpacing="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border CornerRadius="8" Padding="10,6" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                <StackPanel>
+                    <TextBlock x:Name="LblHumidity" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <TextBlock x:Name="TxtHumidity" FontSize="13" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" CornerRadius="8" Padding="10,6" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                <StackPanel>
+                    <TextBlock x:Name="LblWind" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <TextBlock x:Name="TxtWind" FontSize="13" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="2" CornerRadius="8" Padding="10,6" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                <StackPanel>
+                    <TextBlock x:Name="LblRain" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <TextBlock x:Name="TxtRain" FontSize="13" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Next hours -->
+        <ItemsControl x:Name="HourlyItems" Grid.Row="3">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="6" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:HourlyForecastItem">
+                    <Border Width="61" CornerRadius="8" Padding="4,6" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel HorizontalAlignment="Center" Spacing="3">
+                            <TextBlock Text="{x:Bind FormattedTime}" FontSize="10" HorizontalAlignment="Center"
+                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <Image Source="{x:Bind local:WeatherIconSource.Get(Icon)}" Width="22" Height="22" HorizontalAlignment="Center"
+                                   AutomationProperties.Name="{x:Bind ConditionText}" />
+                            <TextBlock Text="{x:Bind DisplayTemperature}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</Window>
