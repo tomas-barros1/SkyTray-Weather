@@ -28,7 +28,7 @@ Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica),
 
 ### 🌟 Funcionalidades
 
-- ☀️ **Ícone Vetorial Dinâmico no Tray**: Renderização vetorial GDI+ nativa em alta definição (32bpp ARGB) que altera o ícone de acordo com o tempo (Sol, Lua, Parcialmente Nublado, Chuva, Tempestade, Neve).
+- ☀️ **Ícones Próprios (SVG) no Tray e no Painel**: Conjunto de 11 ícones desenhados para o app (Sol, Lua, Parcialmente Nublado, Nublado, Névoa, Chuva, Tempestade, Neve, carregando e erro). O painel usa SVG; o tray usa PNGs pré-renderizados no tamanho do seu DPI (16/20/24/32 px), com desenho vetorial GDI+ como reserva.
 - 📍 **Localização Automática**: Geolocalização nativa do Windows com fallback automático via IP e, se tudo falhar, a última localização conhecida.
 - 📴 **Funciona Offline**: A última previsão é salva em disco e exibida como "Offline · atualizado às HH:mm" quando a rede cai (até 6 horas). Falhas temporárias de rede/servidor são repetidas automaticamente.
 - 📊 **Painel com 11 Métricas de Clima**:
@@ -105,7 +105,7 @@ Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray 
 
 ### 🌟 Features
 
-- ☀️ **Dynamic Vector Tray Icons**: Native GDI+ 32bpp ARGB anti-aliased vector rendering that dynamically switches tray icons according to weather condition (Sun, Moon, Partly Cloudy, Rain, Thunderstorm, Snow).
+- ☀️ **Custom SVG Icons in the Tray and Panel**: A set of 11 icons designed for the app (Sun, Moon, Partly Cloudy, Cloudy, Fog, Rain, Thunderstorm, Snow, loading and error). The panel uses SVG; the tray uses PNGs pre-rendered for your DPI (16/20/24/32 px), with the GDI+ vector drawing as a fallback.
 - 📍 **Automatic Location Detection**: Windows native Geolocator with automatic IP geolocation fallback and, if everything fails, the last known location.
 - 📴 **Works Offline**: The last forecast is saved to disk and shown as "Offline · updated HH:mm" when the network is down (up to 6 hours). Transient network/server errors are retried automatically.
 - 📊 **11 Weather Metrics Dashboard**:

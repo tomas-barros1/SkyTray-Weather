@@ -4,6 +4,21 @@ All notable changes to SkyTray Weather are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 Older releases: see [GitHub Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases).
 
+## [1.6.0] - 2026-11-12
+
+### Added
+- **Custom weather icon set (SVG)**: 11 icons designed for SkyTray (clear day/night, partly cloudy day/night, cloudy, fog, rain, thunderstorm, snow, loading, error), with a dark rim so they read on both light and dark backgrounds.
+- The panel's current-condition icon and the hourly forecast now use the SVG icons instead of emoji.
+- **Tray icon matches your display scale**: the tray loads a PNG pre-rendered at the system small-icon size (16/20/24/32 px for 100/125/150/200%) instead of drawing 32 px and letting Windows downscale it. If an asset is missing, the previous GDI+ vector drawing is used as a fallback.
+- Tests: code→icon mapping, assets present for every icon/size, and icon persistence in the forecast cache.
+
+### Changed
+- Overcast (WMO 3) now has its own "cloudy" icon instead of "partly cloudy", and fog (45/48) its own "fog" icon instead of "rain".
+- Emoji remain only in text (tooltip summary and the metric labels in the panel).
+
+### Upgrade notes
+- The installer/zip now include `Assets\WeatherIcons\` next to the executable. A forecast cached by an older version has no hourly icons, so those slots show no icon until the next successful refresh.
+
 ## [1.5.2] - 2026-11-12
 
 ### Fixed

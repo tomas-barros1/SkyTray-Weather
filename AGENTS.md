@@ -98,3 +98,12 @@ The registry key `HKCU\Software\WinuiWheaterForecastTray` (settings) and the leg
 - **First-load failure:** the panel shows the error text plus a "Try again" button (`BtnRetry`); the header with the refresh button lives inside `ContentGrid`, which is collapsed in that state.
 - **Clear cache** (Settings) clears the location cache *and* the saved forecast, then `MainWindow` drops its in-memory forecast and refetches (`SettingsWindow.CacheCleared`).
 - **IP geolocation:** `ipapi.co` then `ipwho.is`, both HTTPS. Coordinates are untrusted network input: `IpLocationService.ValidateCoordinates` rejects missing (null), NaN and out-of-range values; an explicit `(0, 0)` is still accepted on purpose (see the tests). Never add a cleartext-HTTP provider.
+
+## Weather icons
+
+- Icons are a closed set: the `WeatherIcon` enum (Core) ↔ files in `WinuiWeatherForecastTray/Assets/WeatherIcons` (`svg/<name>.svg` for the panel, `png/{16,20,24,32}/<name>.png` for the tray). `WeatherIcon.ToFileName()` is the only place that maps enum → file name, and `WeatherIconAssetsTests` fails if a file is missing. The mapping WMO code → icon lives in `WeatherHelper.GetIcon`.
+- Panel: `WeatherIconSource.Get(icon)` returns a cached `SvgImageSource` loaded from the file through a stream (no `ms-appx:` dependency in this unpackaged app). It is also used from `x:Bind` in the hourly list. UI thread only.
+- Tray: `TrayIconHelper.CreateIcon(icon)` loads the PNG matching `GetSystemMetricsForDpi(SM_CXSMICON)` via GDI+ and falls back to the older `TrayVectorRenderer` drawing (`CreateEmojiIcon`) if the file is missing. Keep `TrayIconHelper.AssetSizes` and the test's size list in sync with the folders.
+- `HourlyForecastItem.Icon` is persisted **by name** (`JsonStringEnumConverter`) so the forecast cache survives enum reordering; `WeatherIcon.Unknown` (0) is what caches written before icons existed deserialize to.
+- Adding an icon: add the enum value + `ToFileName` case, the SVG, the four PNG sizes (render the SVG), and the `GetIcon` mapping. Emoji are still used for text only (tooltip summary, metric labels in the panel).
+- Source SVGs use only paths, shapes, linear/radial gradients and transforms (no masks/filters/CSS) so WinUI's `SvgImageSource` renders them like a browser does.
