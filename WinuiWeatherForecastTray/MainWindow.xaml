@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:WinuiWeatherForecastTray"
     xmlns:models="using:WinuiWeatherForecastTray.Models"
     mc:Ignorable="d">
 
@@ -59,7 +60,7 @@
                         <TextBlock x:Name="TxtFeelsLike" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                     </StackPanel>
 
-                    <TextBlock x:Name="TxtEmoji" Grid.Column="1" FontSize="46" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,0,0,0" />
+                    <Image x:Name="ImgWeather" Grid.Column="1" Width="56" Height="56" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,0,0,0" />
                 </Grid>
             </Border>
 
@@ -177,7 +178,7 @@
                             <Border CornerRadius="10" Padding="4,6" Width="48" Margin="2,0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" ToolTipService.ToolTip="{x:Bind TooltipText}">
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind FormattedTime}" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" />
-                                    <TextBlock Text="{x:Bind Emoji}" FontSize="16" HorizontalAlignment="Center" Margin="0,2,0,2" />
+                                    <Image Source="{x:Bind local:WeatherIconSource.Get(Icon)}" Width="22" Height="22" HorizontalAlignment="Center" Margin="0,3,0,3" AutomationProperties.Name="{x:Bind ConditionText}" />
                                     <TextBlock Text="{x:Bind DisplayTemperature}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </StackPanel>
                             </Border>

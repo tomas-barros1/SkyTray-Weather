@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Clear night">
+  <title>Clear night</title>
+  <defs>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE9A0"/><stop offset="1" stop-color="#F0A92B"/></linearGradient>
+  </defs>
+  <path fill="url(#moon)" stroke="#C98A12" stroke-width="1.6" stroke-linejoin="round" d="M50.35 39.20 A21 21 0 1 1 28.93 13.03 A17 17 0 0 0 50.35 39.20 Z"/>
+  <circle cx="49" cy="15" r="2.6" fill="#F2B84B"/>
+  <circle cx="54" cy="27" r="1.8" fill="#F2B84B"/>
+</svg>

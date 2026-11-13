@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using WinuiWeatherForecastTray.Models;
 using WinuiWeatherForecastTray.Native;
 using WinuiWeatherForecastTray.Services;
 using WinuiWeatherForecastTray.Services.Interfaces;
@@ -76,10 +77,10 @@ public sealed class TrayIconManager : IDisposable
         _i18nService = i18nService ?? new I18nService();
     }
 
-    public void Initialize(IntPtr hwnd, string initialEmoji = "☀️", string initialTooltip = "Weather Forecast")
+    public void Initialize(IntPtr hwnd, WeatherIcon initialIcon = WeatherIcon.Loading, string initialTooltip = "Weather Forecast")
     {
         _hwnd = hwnd;
-        _currentHIcon = TrayIconHelper.CreateEmojiIcon(initialEmoji);
+        _currentHIcon = TrayIconHelper.CreateIcon(initialIcon);
         _lastTooltip = initialTooltip;
 
         AddIcon();
@@ -113,11 +114,11 @@ public sealed class TrayIconManager : IDisposable
         AddIcon();
     }
 
-    public void Update(string emoji, string tooltipText)
+    public void Update(WeatherIcon icon, string tooltipText)
     {
         if (_hwnd == IntPtr.Zero) return;
 
-        IntPtr newHIcon = TrayIconHelper.CreateEmojiIcon(emoji);
+        IntPtr newHIcon = TrayIconHelper.CreateIcon(icon);
         _lastTooltip = tooltipText;
 
         if (!_isAdded)

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Error">
+  <title>Error</title>
+  <defs>
+    
+  </defs>
+  <path fill="#FFB020" stroke="#FFB020" stroke-width="5" stroke-linejoin="round" d="M32 9 L57 53 H7 Z"/>
+  <rect x="29.5" y="24" width="5" height="16" rx="2.5" fill="#3A2A00"/>
+  <circle cx="32" cy="46.5" r="3" fill="#3A2A00"/>
+</svg>

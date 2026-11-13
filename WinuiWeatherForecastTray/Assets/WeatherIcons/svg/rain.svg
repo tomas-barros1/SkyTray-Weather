@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Rain">
+  <title>Rain</title>
+  <defs>
+    <linearGradient id="cloud" gradientUnits="userSpaceOnUse" x1="0" y1="16" x2="0" y2="50">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C3D0E0"/></linearGradient>
+  </defs>
+  <g transform="translate(0 -8) scale(1.0)">
+    <g fill="#6F849E" stroke="#6F849E" stroke-width="3.2" stroke-linejoin="round">
+    <rect x="12" y="34" width="42" height="14" rx="7"/>
+    <circle cx="24" cy="35" r="10"/>
+    <circle cx="35" cy="28" r="13"/>
+    <circle cx="46" cy="37" r="9"/>
+    </g>
+    <g fill="url(#cloud)">
+    <rect x="12" y="34" width="42" height="14" rx="7"/>
+    <circle cx="24" cy="35" r="10"/>
+    <circle cx="35" cy="28" r="13"/>
+    <circle cx="46" cy="37" r="9"/>
+    </g>
+  </g>
+  <g stroke="#3FA2FF" stroke-width="4" stroke-linecap="round">
+    <line x1="24" y1="50" x2="20.5" y2="58"/>
+    <line x1="34" y1="50" x2="30.5" y2="58"/>
+    <line x1="44" y1="50" x2="40.5" y2="58"/>
+  </g>
+</svg>

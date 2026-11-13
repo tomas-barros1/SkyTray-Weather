@@ -94,7 +94,7 @@ namespace WinuiWeatherForecastTray
             ApplyLocalizedStrings();
 
             _trayIconManager = new TrayIconManager(_i18nService);
-            _trayIconManager.Initialize(_hwnd, "🔄", _i18nService.GetString("FetchingData", "Weather Forecast — Fetching..."));
+            _trayIconManager.Initialize(_hwnd, WeatherIcon.Loading, _i18nService.GetString("FetchingData", "Weather Forecast — Fetching..."));
             _trayIconManager.TrayIconClicked += TrayIconManager_TrayIconClicked;
             _trayIconManager.TrayIconHovered += TrayIconManager_TrayIconHovered;
             _trayIconManager.SettingsRequested += TrayIconManager_SettingsRequested;
@@ -214,7 +214,7 @@ namespace WinuiWeatherForecastTray
                 if (!hadData)
                 {
                     ShowLoading();
-                    _trayIconManager?.Update("🔄", _i18nService.GetString("FetchingData", "Fetching weather data..."));
+                    _trayIconManager?.Update(WeatherIcon.Loading, _i18nService.GetString("FetchingData", "Fetching weather data..."));
                 }
 
                 var forecast = await _weatherService.GetForecastAsync().ConfigureAwait(true);
@@ -297,7 +297,7 @@ namespace WinuiWeatherForecastTray
             LblLoading.Text = message;
             LoadingStack.Visibility = Visibility.Visible;
             ContentGrid.Visibility = Visibility.Collapsed;
-            _trayIconManager?.Update("⚠️", message);
+            _trayIconManager?.Update(WeatherIcon.Error, message);
         }
 
         /// <summary>"Updated 14:05" or "Offline · updated 14:05", depending on whether the data is a cached copy.</summary>
@@ -331,7 +331,9 @@ namespace WinuiWeatherForecastTray
             TxtTemperature.Text = $"{Math.Round(data.Current.Temperature)}°C";
             TxtCondition.Text = data.Current.ConditionText;
             TxtFeelsLike.Text = $"{_i18nService.GetString("FeelsLike", "Feels like")} {Math.Round(data.Current.ApparentTemperature)}°C";
-            TxtEmoji.Text = data.Current.Emoji;
+            WeatherIcon icon = WeatherHelper.GetIcon(data.Current.WeatherCode, data.Current.IsDay);
+            ImgWeather.Source = WeatherIconSource.Get(icon);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(ImgWeather, data.Current.ConditionText);
 
             TxtHumidity.Text = $"{Math.Round(data.Current.Humidity)}%";
             TxtWind.Text = $"{Math.Round(data.Current.WindSpeed)} km/h";
@@ -348,10 +350,9 @@ namespace WinuiWeatherForecastTray
             string updatedLabel = BuildUpdatedLabel(data);
             TxtUpdated.Text = data.IsStale ? $"⚠ {updatedLabel}" : updatedLabel;
 
-            string trayEmoji = WeatherHelper.GetTrayEmoji(data.Current.WeatherCode, data.Current.IsDay);
             // Stale marker goes first: the shell truncates long tooltips from the end.
             string trayTooltip = data.IsStale ? $"⚠ {updatedLabel}\n{data.Current.SummaryText}" : data.Current.SummaryText;
-            _trayIconManager.Update(trayEmoji, trayTooltip);
+            _trayIconManager.Update(icon, trayTooltip);
         }
 
         private void TrayIconManager_TrayIconClicked(object? sender, EventArgs e)
