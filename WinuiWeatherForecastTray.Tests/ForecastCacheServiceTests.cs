@@ -59,6 +59,32 @@ public class ForecastCacheServiceTests : IDisposable
     }
 
     [Fact]
+    public void Save_PersistsHourlyIconByName_AndRestoresIt()
+    {
+        var service = new ForecastCacheService(_filePath);
+        var data = Sample();
+        data.HourlyForecast[0].Icon = WeatherIcon.Thunderstorm;
+
+        service.Save(data);
+
+        File.ReadAllText(_filePath).Should().Contain("\"Thunderstorm\""); // by name, not by number
+        service.Load()!.HourlyForecast[0].Icon.Should().Be(WeatherIcon.Thunderstorm);
+    }
+
+    [Fact]
+    public void Load_ForecastSavedWithoutIcons_RestoresUnknownIcon()
+    {
+        // A cache file written by a version that did not have hourly icons yet.
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(_filePath, """{"Current":{"CityName":"X"},"HourlyForecast":[{"FormattedTime":"13:00","Temperature":20}]}""");
+
+        var loaded = new ForecastCacheService(_filePath).Load();
+
+        loaded.Should().NotBeNull();
+        loaded!.HourlyForecast[0].Icon.Should().Be(WeatherIcon.Unknown);
+    }
+
+    [Fact]
     public void Load_WhenFileIsCorrupted_ReturnsNullInsteadOfThrowing()
     {
         Directory.CreateDirectory(_dir);

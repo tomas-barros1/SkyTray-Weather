@@ -254,6 +254,7 @@ public sealed class WeatherService : IWeatherService
                 FormattedTime = FormatTime(rawTime),
                 Temperature = temp,
                 Emoji = hourlyEmoji,
+                Icon = WeatherHelper.GetIcon(code, isDayHourly),
                 ConditionText = hourlyDesc,
                 RainChance = rainChance
             });

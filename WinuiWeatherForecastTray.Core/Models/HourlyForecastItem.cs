@@ -21,8 +21,12 @@ public class HourlyForecastItem
     [JsonIgnore]
     public string DisplayTemperature => $"{Math.Round(Temperature)}°";
 
-    /// <summary>Condition emoji icon (e.g. "🌧️").</summary>
+    /// <summary>Condition emoji icon (e.g. "🌧️"). Kept for text (tooltips); the UI draws <see cref="Icon"/>.</summary>
     public string Emoji { get; set; } = string.Empty;
+
+    /// <summary>Icon for this slot's condition (persisted by name so cached files survive enum reordering).</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public WeatherIcon Icon { get; set; }
 
     /// <summary>Localized weather condition text (e.g. "Clear").</summary>
     public string ConditionText { get; set; } = string.Empty;
