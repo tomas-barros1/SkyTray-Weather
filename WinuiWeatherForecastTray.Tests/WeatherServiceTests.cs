@@ -265,4 +265,57 @@ public class WeatherServiceTests
 
         mockApi.Verify(a => a.GetWeatherDataAsync(1.5, 2.5, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task GetForecastAsync_MapsTodaysHighAndLowFromTheDailyData()
+    {
+        var mockApi = new Mock<IApiService>();
+        var mockGeocoding = new Mock<IGeocodingService>();
+        var provider = new Mock<ILocationService>();
+
+        provider.Setup(l => l.GetLocationAsync(It.IsAny<CancellationToken>())).ReturnsAsync((1.5, 2.5));
+        mockGeocoding.Setup(g => g.GetCityNameAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)"Somewhere");
+
+        var dto = MinimalDto();
+        dto.Daily = new DailyWeatherDTO
+        {
+            TemperatureMax = new List<double> { 31.2 },
+            TemperatureMin = new List<double> { 23.4 }
+        };
+        mockApi.Setup(a => a.GetWeatherDataAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(dto);
+
+        var service = new WeatherService(
+            mockApi.Object, mockGeocoding.Object, new[] { provider.Object },
+            new I18nService("en-US"), new Mock<IAirQualityService>().Object, new Mock<ILocationCacheService>().Object);
+
+        var forecast = await service.GetForecastAsync();
+
+        forecast.Current.TemperatureMax.Should().Be(31.2);
+        forecast.Current.TemperatureMin.Should().Be(23.4);
+    }
+
+    [Fact]
+    public async Task GetForecastAsync_WithoutDailyTemperatures_LeavesHighAndLowNull()
+    {
+        var mockApi = new Mock<IApiService>();
+        var mockGeocoding = new Mock<IGeocodingService>();
+        var provider = new Mock<ILocationService>();
+
+        provider.Setup(l => l.GetLocationAsync(It.IsAny<CancellationToken>())).ReturnsAsync((1.5, 2.5));
+        mockGeocoding.Setup(g => g.GetCityNameAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)"Somewhere");
+        mockApi.Setup(a => a.GetWeatherDataAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MinimalDto()); // Daily is null
+
+        var service = new WeatherService(
+            mockApi.Object, mockGeocoding.Object, new[] { provider.Object },
+            new I18nService("en-US"), new Mock<IAirQualityService>().Object, new Mock<ILocationCacheService>().Object);
+
+        var forecast = await service.GetForecastAsync();
+
+        forecast.Current.TemperatureMax.Should().BeNull();
+        forecast.Current.TemperatureMin.Should().BeNull();
+    }
 }

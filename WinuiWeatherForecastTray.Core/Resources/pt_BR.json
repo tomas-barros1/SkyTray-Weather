@@ -18,6 +18,8 @@
   "OfflineUpdatedAt": "Offline · atualizado às {0}",
   "FetchFailed": "Não foi possível carregar o clima",
   "Retry": "Tentar novamente",
+  "HighLow": "Máx {0}° · Mín {1}°",
+  "HoverCard": "Mostrar cartão do clima ao passar o mouse no ícone",
   "HumidityUnit": "umidade",
   "WindUnit": "vento",
   "Settings": "Configurações",

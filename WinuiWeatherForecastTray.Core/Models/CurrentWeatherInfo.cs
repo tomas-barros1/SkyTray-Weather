@@ -20,6 +20,12 @@ public class CurrentWeatherInfo
     /// <summary>Apparent ("feels like") temperature in degrees Celsius.</summary>
     public double ApparentTemperature { get; set; }
 
+    /// <summary>Today's forecast high in °C, or <c>null</c> if the API did not return it.</summary>
+    public double? TemperatureMax { get; set; }
+
+    /// <summary>Today's forecast low in °C, or <c>null</c> if the API did not return it.</summary>
+    public double? TemperatureMin { get; set; }
+
     /// <summary>WMO weather condition code.</summary>
     public int WeatherCode { get; set; }
 

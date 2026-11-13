@@ -13,4 +13,10 @@ public class DailyWeatherDTO
 
     [JsonPropertyName("uv_index_max")]
     public List<double> UvIndexMax { get; set; } = new();
+
+    [JsonPropertyName("temperature_2m_max")]
+    public List<double> TemperatureMax { get; set; } = new();
+
+    [JsonPropertyName("temperature_2m_min")]
+    public List<double> TemperatureMin { get; set; } = new();
 }

@@ -38,7 +38,7 @@ public sealed class ApiService : IApiService
                   $"&longitude={longitude.ToString(CultureInfo.InvariantCulture)}" +
                   "&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,cloud_cover,pressure_msl,precipitation,is_day" +
                   "&hourly=temperature_2m,precipitation_probability,weather_code,is_day" +
-                  "&daily=sunrise,sunset,uv_index_max" +
+                  "&daily=sunrise,sunset,uv_index_max,temperature_2m_max,temperature_2m_min" +
                   "&timezone=auto";
 
         for (int attempt = 0; ; attempt++)

@@ -197,4 +197,20 @@ public class ApiServiceTests
 
         calls.Should().Be(1);
     }
+
+    [Fact]
+    public async Task GetWeatherDataAsync_RequestsTodaysHighAndLow()
+    {
+        string? requestedUrl = null;
+        var handler = new MockHttpMessageHandler(req =>
+        {
+            requestedUrl = req.RequestUri!.ToString();
+            return Json(HttpStatusCode.OK);
+        });
+        var apiService = new ApiService(new HttpClient(handler), NoDelay);
+
+        await apiService.GetWeatherDataAsync(0, 0);
+
+        requestedUrl.Should().Contain("temperature_2m_max").And.Contain("temperature_2m_min");
+    }
 }

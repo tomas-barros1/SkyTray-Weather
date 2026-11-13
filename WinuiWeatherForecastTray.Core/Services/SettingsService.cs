@@ -11,6 +11,7 @@ public sealed class SettingsService : ISettingsService
     private const string SettingsRegistryKey = @"Software\WinuiWheaterForecastTray";
     private const string RefreshIntervalKey = "RefreshIntervalMinutes";
     private const int DefaultInterval = 15;
+    private const string HoverCardKey = "HoverCardEnabled";
 
     /// <inheritdoc/>
     public int GetRefreshIntervalMinutes()
@@ -48,6 +49,44 @@ public sealed class SettingsService : ISettingsService
         catch (Exception ex)
         {
             DebugLog.Swallowed(typeof(SettingsService), ex, "SetRefreshIntervalMinutes failed");
+        }
+    }
+
+    /// <inheritdoc/>
+    public bool GetHoverCardEnabled()
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(SettingsRegistryKey, false);
+                if (key?.GetValue(HoverCardKey) is int value)
+                {
+                    return value != 0;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.Swallowed(typeof(SettingsService), ex, "GetHoverCardEnabled failed");
+        }
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public void SetHoverCardEnabled(bool enabled)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(SettingsRegistryKey, true);
+                key?.SetValue(HoverCardKey, enabled ? 1 : 0);
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.Swallowed(typeof(SettingsService), ex, "SetHoverCardEnabled failed");
         }
     }
 }

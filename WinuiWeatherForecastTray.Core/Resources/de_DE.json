@@ -18,6 +18,8 @@
   "OfflineUpdatedAt": "Offline · aktualisiert um {0}",
   "FetchFailed": "Wetterdaten konnten nicht geladen werden",
   "Retry": "Erneut versuchen",
+  "HighLow": "Max. {0}° · Min. {1}°",
+  "HoverCard": "Wetterkarte beim Überfahren des Symbols anzeigen",
   "HumidityUnit": "Feuchtigkeit",
   "WindUnit": "Wind",
   "Settings": "Einstellungen",

@@ -18,6 +18,8 @@
   "OfflineUpdatedAt": "Hors ligne · mis à jour à {0}",
   "FetchFailed": "Impossible de charger la météo",
   "Retry": "Réessayer",
+  "HighLow": "Max {0}° · Min {1}°",
+  "HoverCard": "Afficher la carte météo au survol de l’icône",
   "HumidityUnit": "humidité",
   "WindUnit": "vent",
   "Settings": "Paramètres",

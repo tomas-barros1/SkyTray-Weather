@@ -171,6 +171,8 @@ public sealed class WeatherService : IWeatherService
         string sunriseTime = dto.Daily?.Sunrise.Count > 0 ? FormatTime(dto.Daily.Sunrise[0]) : DefaultSunriseTime;
         string sunsetTime = dto.Daily?.Sunset.Count > 0 ? FormatTime(dto.Daily.Sunset[0]) : DefaultSunsetTime;
         double uvIndexMax = dto.Daily?.UvIndexMax.Count > 0 ? dto.Daily.UvIndexMax[0] : DefaultUvIndexMax;
+        double? temperatureMax = dto.Daily?.TemperatureMax.Count > 0 ? dto.Daily.TemperatureMax[0] : null;
+        double? temperatureMin = dto.Daily?.TemperatureMin.Count > 0 ? dto.Daily.TemperatureMin[0] : null;
 
         return new CurrentWeatherInfo
         {
@@ -178,6 +180,8 @@ public sealed class WeatherService : IWeatherService
             DateString = formattedDate,
             Temperature = dto.Current.Temperature2m,
             ApparentTemperature = dto.Current.ApparentTemperature,
+            TemperatureMax = temperatureMax,
+            TemperatureMin = temperatureMin,
             WeatherCode = dto.Current.WeatherCode,
             ConditionText = condition,
             Emoji = emoji,

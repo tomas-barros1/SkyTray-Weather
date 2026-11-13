@@ -18,6 +18,8 @@
   "OfflineUpdatedAt": "Offline · updated {0}",
   "FetchFailed": "Couldn't load weather data",
   "Retry": "Try again",
+  "HighLow": "High {0}° · Low {1}°",
+  "HoverCard": "Show weather card when hovering the tray icon",
   "HumidityUnit": "humidity",
   "WindUnit": "wind",
   "Settings": "Settings",
