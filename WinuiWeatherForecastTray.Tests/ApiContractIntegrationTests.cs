@@ -5,6 +5,12 @@ using Xunit;
 
 namespace WinuiWeatherForecastTray.Tests;
 
+/// <summary>
+/// Calls the real Open-Meteo API, so it depends on the network and on a third party being up and not rate-limiting
+/// the caller. It is excluded from the release gate in CI (see <c>build-and-release.yml</c>) and run there as a
+/// separate, non-blocking step. Run it locally with <c>--filter "Category=Integration"</c>.
+/// </summary>
+[Trait("Category", "Integration")]
 public class ApiContractIntegrationTests
 {
     [Theory]

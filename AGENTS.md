@@ -25,7 +25,7 @@ dotnet test    WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csp
 dotnet publish WinuiWeatherForecastTray/WinuiWeatherForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
 ```
 
-CI in `.github/workflows/build-and-release.yml` follows the same pattern. Publishing must include `-p:Platform=x64` (or `x86`/`ARM64`); the UI csproj targets all three but requires the platform flag explicitly.
+CI in `.github/workflows/build-and-release.yml` follows the same pattern. Tests that call the real network are tagged `[Trait("Category", "Integration")]`; CI runs everything else as the release gate and the `Integration` ones in a separate non-blocking step (`continue-on-error`), so a flaky network or an Open-Meteo rate limit cannot block a release. Any new test that touches the network must carry that trait. Publishing must include `-p:Platform=x64` (or `x86`/`ARM64`); the UI csproj targets all three but requires the platform flag explicitly.
 
 ## Entry points
 

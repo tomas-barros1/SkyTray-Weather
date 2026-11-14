@@ -27,7 +27,13 @@ jobs:
         run: dotnet restore WinuiWeatherForecastTray.slnx
 
       - name: Run Automated Tests
-        run: dotnet test WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj --configuration Release --logger "console;verbosity=normal"
+        run: dotnet test WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj --configuration Release --filter "Category!=Integration" --logger "console;verbosity=normal"
+
+      # Hits the real Open-Meteo API: useful as an early warning if the API contract changes, but a flaky network
+      # or a rate limit on the shared runner IP must not block a release.
+      - name: Run Live API Contract Tests (non-blocking)
+        continue-on-error: true
+        run: dotnet test WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj --configuration Release --no-build --filter "Category=Integration" --logger "console;verbosity=normal"
 
       - name: Publish Standalone Release Build
         run: dotnet publish WinuiWeatherForecastTray/WinuiWeatherForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
