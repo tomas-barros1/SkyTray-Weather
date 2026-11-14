@@ -145,19 +145,12 @@ namespace WinuiWeatherForecastTray
             double scale = PopupWindowHelper.GetScale(_hwnd);
             int width = (int)Math.Round(WidthDips * scale);
             int height = (int)Math.Round(HeightDips * scale);
-            int gap = (int)Math.Round(GapDips * scale);
-            int margin = (int)Math.Round(MarginDips * scale);
 
-            int minX = work.X + margin;
-            int maxX = Math.Max(minX, work.X + work.Width - width - margin);
-            int x = Math.Clamp((anchor.Left + anchor.Right) / 2 - width / 2, minX, maxX);
-
-            bool above = (anchor.Top + anchor.Bottom) / 2 >= work.Y + work.Height / 2;
-            int y = above ? anchor.Top - height - gap : anchor.Bottom + gap;
-
-            int minY = work.Y + margin;
-            int maxY = Math.Max(minY, work.Y + work.Height - height - margin);
-            y = Math.Clamp(y, minY, maxY);
+            (int x, int y) = PopupPlacement.Calculate(
+                anchor.Left, anchor.Top, anchor.Right, anchor.Bottom,
+                work.X, work.Y, work.Width, work.Height,
+                width, height,
+                gap: (int)Math.Round(GapDips * scale), margin: (int)Math.Round(MarginDips * scale));
 
             return new RectInt32(x, y, width, height);
         }

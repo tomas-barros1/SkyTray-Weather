@@ -29,6 +29,7 @@ public sealed class TrayIconManager : IDisposable
     public const int WM_MOUSEMOVE = 0x0200;
     public const int WM_LBUTTONUP = 0x0202;
     public const int WM_RBUTTONUP = 0x0205;
+    private const int VK_SHIFT = 0x10;
 
     private const uint MF_STRING = 0x00000000;
     private const uint TPM_RETURNCMD = 0x0100;
@@ -39,6 +40,9 @@ public sealed class TrayIconManager : IDisposable
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpData);
+
+    [DllImport("user32.dll")]
+    private static extern short GetKeyState(int nVirtKey);
 
     [DllImport("shell32.dll")]
     private static extern int Shell_NotifyIconGetRect(ref NOTIFYICONIDENTIFIER identifier, out RECT iconLocation);
@@ -73,6 +77,9 @@ public sealed class TrayIconManager : IDisposable
 
     public event EventHandler? TrayIconClicked;
     public event EventHandler? TrayIconHovered;
+
+    /// <summary>Right click on the icon: the app shows its own (WinUI) menu. Shift + right click shows the native one instead.</summary>
+    public event EventHandler? TrayIconRightClicked;
     public event EventHandler? SettingsRequested;
     public event EventHandler? ExitRequested;
 
@@ -215,7 +222,16 @@ public sealed class TrayIconManager : IDisposable
         }
         else if (lParam == WM_RBUTTONUP)
         {
-            ShowContextMenu();
+            // Safety net: Shift + right click always opens the classic native menu, so Settings/Exit stay reachable
+            // even if the WinUI menu ever misbehaves on some machine.
+            if ((GetKeyState(VK_SHIFT) & 0x8000) != 0)
+            {
+                ShowContextMenu();
+            }
+            else
+            {
+                TrayIconRightClicked?.Invoke(this, EventArgs.Empty);
+            }
         }
         else if (lParam == WM_MOUSEMOVE)
         {
@@ -223,6 +239,18 @@ public sealed class TrayIconManager : IDisposable
         }
     }
 
+    /// <summary>The icon's rectangle, or a small square around the cursor if the shell cannot tell where the icon is.</summary>
+    public RECT GetAnchorRect()
+    {
+        if (TryGetIconRect(out RECT icon))
+            return icon;
+
+        GetCursorPos(out POINT cursor);
+        const int radius = 12;
+        return new RECT { Left = cursor.X - radius, Top = cursor.Y - radius, Right = cursor.X + radius, Bottom = cursor.Y + radius };
+    }
+
+    /// <summary>The classic native menu (only used with Shift + right click, see <see cref="HandleTrayMessage"/>).</summary>
     private void ShowContextMenu()
     {
         if (_hwnd == IntPtr.Zero) return;

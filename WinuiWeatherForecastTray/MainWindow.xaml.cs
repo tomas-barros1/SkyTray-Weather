@@ -61,6 +61,7 @@ namespace WinuiWeatherForecastTray
         private int _startupRetryCount = 0;
         private bool _isRefreshing = false;
         private HoverCardController? _hoverCard;
+        private TrayMenuWindow? _trayMenu;
         private static readonly int[] StartupRetryDelaysSeconds = { 10, 30, 60 };
         private DateTime _lastDeactivatedTime = DateTime.MinValue;
 
@@ -101,7 +102,13 @@ namespace WinuiWeatherForecastTray
             _trayIconManager.SettingsRequested += TrayIconManager_SettingsRequested;
             _trayIconManager.ExitRequested += TrayIconManager_ExitRequested;
 
-            _hoverCard = new HoverCardController(DispatcherQueue, _i18nService, _trayIconManager, () => IsWindowVisible(_hwnd));
+            _trayMenu = new TrayMenuWindow(_i18nService);
+            _trayMenu.SettingsRequested += (s, e) => TrayIconManager_SettingsRequested(s, e);
+            _trayMenu.ExitRequested += (s, e) => TrayIconManager_ExitRequested(s, e);
+            _trayIconManager.TrayIconRightClicked += TrayIconManager_TrayIconRightClicked;
+
+            _hoverCard = new HoverCardController(DispatcherQueue, _i18nService, _trayIconManager,
+                () => IsWindowVisible(_hwnd) || (_trayMenu?.IsShown ?? false));
             ApplyHoverCardSetting();
 
             _autoRefreshTimer = new DispatcherTimer();
@@ -378,6 +385,15 @@ namespace WinuiWeatherForecastTray
             });
         }
 
+        private void TrayIconManager_TrayIconRightClicked(object? sender, EventArgs e)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                _hoverCard?.Dismiss();
+                _trayMenu?.ShowNear(_trayIconManager.GetAnchorRect());
+            });
+        }
+
         private void TrayIconManager_TrayIconHovered(object? sender, EventArgs e)
         {
             // Opens the hover card after the cursor rests on the icon (ShowWindowToTray positions the panel itself).
@@ -427,6 +443,7 @@ namespace WinuiWeatherForecastTray
                 _isExiting = true;
                 _autoRefreshTimer?.Stop();
                 _hoverCard?.Dispose();
+                _trayMenu?.Close();
                 _trayIconManager?.Dispose();
                 Application.Current.Exit();
                 Environment.Exit(0);
@@ -486,6 +503,7 @@ namespace WinuiWeatherForecastTray
         {
             _autoRefreshTimer?.Stop();
             _hoverCard?.Dispose();
+            _trayMenu?.Close();
             _trayIconManager?.Dispose();
         }
     }
