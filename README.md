@@ -30,6 +30,7 @@ Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica),
 
 - ☀️ **Ícones Próprios (SVG) no Tray e no Painel**: Conjunto de 11 ícones desenhados para o app (Sol, Lua, Parcialmente Nublado, Nublado, Névoa, Chuva, Tempestade, Neve, carregando e erro). O painel usa SVG; o tray usa PNGs pré-renderizados no tamanho do seu DPI (16/20/24/32 px), com desenho vetorial GDI+ como reserva.
 - 🪟 **Cartão ao Passar o Mouse**: ao repousar o mouse no ícone do tray aparece um cartão WinUI (Acrylic) com o tempo atual, máxima/mínima do dia, umidade, vento, chuva e as próximas horas, sem roubar o foco. Pode ser desligado nas Configurações para voltar ao tooltip clássico.
+- 🧭 **Menu do Tray em WinUI**: o clique direito no ícone abre um menu (Configurações / Sair) com Acrylic e cantos arredondados, no mesmo estilo do painel e do cartão. Shift + clique direito abre o menu clássico do Windows como alternativa.
 - 📍 **Localização Automática**: Geolocalização nativa do Windows com fallback automático via IP e, se tudo falhar, a última localização conhecida.
 - 📴 **Funciona Offline**: A última previsão é salva em disco e exibida como "Offline · atualizado às HH:mm" quando a rede cai (até 6 horas). Falhas temporárias de rede/servidor são repetidas automaticamente.
 - 📊 **Painel com 11 Métricas de Clima**:
@@ -108,6 +109,7 @@ Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray 
 
 - ☀️ **Custom SVG Icons in the Tray and Panel**: A set of 11 icons designed for the app (Sun, Moon, Partly Cloudy, Cloudy, Fog, Rain, Thunderstorm, Snow, loading and error). The panel uses SVG; the tray uses PNGs pre-rendered for your DPI (16/20/24/32 px), with the GDI+ vector drawing as a fallback.
 - 🪟 **Hover Card**: resting the mouse on the tray icon opens a WinUI (Acrylic) card with current conditions, today's high/low, humidity, wind, rain and the next hours, without stealing focus. It can be turned off in Settings to get the classic tooltip back.
+- 🧭 **WinUI Tray Menu**: right-clicking the icon opens a menu (Settings / Exit) with Acrylic and rounded corners, matching the panel and the hover card. Shift + right click opens the classic Windows menu as a fallback.
 - 📍 **Automatic Location Detection**: Windows native Geolocator with automatic IP geolocation fallback and, if everything fails, the last known location.
 - 📴 **Works Offline**: The last forecast is saved to disk and shown as "Offline · updated HH:mm" when the network is down (up to 6 hours). Transient network/server errors are retried automatically.
 - 📊 **11 Weather Metrics Dashboard**:

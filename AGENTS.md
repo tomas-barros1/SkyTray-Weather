@@ -115,3 +115,10 @@ The registry key `HKCU\Software\WinuiWheaterForecastTray` (settings) and the leg
 - The card window must never take focus: it is a tool window with `WS_EX_NOACTIVATE` and is placed with `SetWindowPos(... SWP_NOACTIVATE | SWP_SHOWWINDOW)`. Do not call `Activate()` on it. Size is in DIPs (`WidthDips`/`HeightDips`) and scaled by monitor DPI like the other popups.
 - While the card is enabled the classic tooltip is turned off (`TrayIconManager.SetClassicTooltipEnabled(false)` sends an empty `szTip`), otherwise both would show. The setting is `ISettingsService.GetHoverCardEnabled()` (registry value `HoverCardEnabled`, default on), toggled from the settings window; turning it off restores the classic tooltip.
 - `CurrentWeatherInfo.TemperatureMax/Min` (nullable) come from the `daily=temperature_2m_max,temperature_2m_min` request parameters; the card hides the high/low line when they are null (e.g. a cache written by an older version).
+
+## Tray context menu
+
+- Right click on the icon raises `TrayIconManager.TrayIconRightClicked`; `MainWindow` shows `TrayMenuWindow` (WinUI, Settings / Exit) next to `TrayIconManager.GetAnchorRect()`. **Shift + right click** still opens the classic native `TrackPopupMenuEx` menu (`ShowContextMenu`): keep it, it is the safety net that guarantees Settings/Exit stay reachable if the WinUI menu misbehaves on some machine.
+- Unlike the hover card, the menu **does** take focus on purpose (`Activate()` + `SetForegroundWindow`): it closes on `Deactivated` (click elsewhere, Alt+Tab) and on Esc. Do not give it `WS_EX_NOACTIVATE`, or it would never close when the user clicks away.
+- Placement for the hover card and the menu is `PopupPlacement.Calculate` (Core, unit-tested): centered on the icon, above it for a bottom taskbar (below for a top one), clamped into the work area, so a popup never overlaps the taskbar. Add new tray popups through it instead of repeating the maths.
+- The menu reuses the `Settings` / `Exit` i18n keys; icons are Segoe Fluent Icons glyphs (`E713` settings, `E7E8` power) with a Segoe MDL2 fallback, not emoji.
