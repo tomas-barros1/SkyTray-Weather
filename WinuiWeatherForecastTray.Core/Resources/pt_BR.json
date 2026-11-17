@@ -56,5 +56,9 @@
   "Condition_Snow": "Neve",
   "Condition_RainShowers": "Pancadas de Chuva",
   "Condition_SnowShowers": "Pancadas de Neve",
-  "Condition_Thunderstorm": "Tempestade"
+  "Condition_Thunderstorm": "Tempestade",
+  "UpdateAvailableTitle": "Atualizacao disponivel",
+  "UpdateAvailableMessage": "SkyTray Weather {0} esta disponivel. Deseja instalar agora?",
+  "UpdateInstall": "Instalar atualizacao",
+  "UpdateLater": "Mais tarde"
 }

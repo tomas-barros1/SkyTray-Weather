@@ -36,7 +36,11 @@ jobs:
         run: dotnet test WinuiWeatherForecastTray.Tests/WinuiWeatherForecastTray.Tests.csproj --configuration Release --no-build --filter "Category=Integration" --logger "console;verbosity=normal"
 
       - name: Publish Standalone Release Build
-        run: dotnet publish WinuiWeatherForecastTray/WinuiWeatherForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o ./publish
+        shell: powershell
+        run: |
+          $ver = if ("${{ github.ref_name }}" -like "v*") { "${{ github.ref_name }}" } else { "1.1.0" }
+          $ver = $ver -replace '^v', ''
+          dotnet publish WinuiWeatherForecastTray/WinuiWeatherForecastTray.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -p:Version=$ver -o ./publish
 
       - name: Copy Installer Script to Package
         shell: powershell
@@ -55,6 +59,7 @@ jobs:
         shell: powershell
         run: |
           $ver = if ("${{ github.ref_name }}" -like "v*") { "${{ github.ref_name }}" } else { "1.1.0" }
+          $ver = $ver -replace '^v', ''
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$ver" installer.iss
 
       - name: Upload Build Artifacts

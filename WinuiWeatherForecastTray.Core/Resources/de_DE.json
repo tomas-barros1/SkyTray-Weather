@@ -56,5 +56,9 @@
   "Condition_Snow": "Schnee",
   "Condition_RainShowers": "Regenschauer",
   "Condition_SnowShowers": "Schneeschauer",
-  "Condition_Thunderstorm": "Gewitter"
+  "Condition_Thunderstorm": "Gewitter",
+  "UpdateAvailableTitle": "Update verfugbar",
+  "UpdateAvailableMessage": "SkyTray Weather {0} ist verfugbar. Jetzt installieren?",
+  "UpdateInstall": "Update installieren",
+  "UpdateLater": "Spater"
 }

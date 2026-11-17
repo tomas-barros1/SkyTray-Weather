@@ -112,6 +112,7 @@ Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray 
 - 🧭 **WinUI Tray Menu**: right-clicking the icon opens a menu (Settings / Exit) with Acrylic and rounded corners, matching the panel and the hover card. Shift + right click opens the classic Windows menu as a fallback.
 - 📍 **Automatic Location Detection**: Windows native Geolocator with automatic IP geolocation fallback and, if everything fails, the last known location.
 - 📴 **Works Offline**: The last forecast is saved to disk and shown as "Offline · updated HH:mm" when the network is down (up to 6 hours). Transient network/server errors are retried automatically.
+- 🔄 **Automatic Updates**: Checks GitHub Releases at startup and offers to install newer stable versions.
 - 📊 **11 Weather Metrics Dashboard**:
   - 🌡️ Temperature & Feels Like Temperature
   - ☁️ Cloud Cover (%)

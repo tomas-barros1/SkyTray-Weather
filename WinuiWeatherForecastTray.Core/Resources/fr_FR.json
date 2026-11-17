@@ -56,5 +56,9 @@
   "Condition_Snow": "Neige",
   "Condition_RainShowers": "Averses de Pluie",
   "Condition_SnowShowers": "Averses de Neige",
-  "Condition_Thunderstorm": "Orage"
+  "Condition_Thunderstorm": "Orage",
+  "UpdateAvailableTitle": "Mise a jour disponible",
+  "UpdateAvailableMessage": "SkyTray Weather {0} est disponible. Voulez-vous l'installer maintenant ?",
+  "UpdateInstall": "Installer la mise a jour",
+  "UpdateLater": "Plus tard"
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -11,6 +12,7 @@ using Windows.Graphics;
 using WinuiWeatherForecastTray.Models;
 using WinuiWeatherForecastTray.Native;
 using WinuiWeatherForecastTray.Services;
+using WinuiWeatherForecastTray.Core.Services;
 using WinuiWeatherForecastTray.Services.Interfaces;
 using WinuiWeatherForecastTray.Tray;
 using WinRT.Interop;
@@ -120,6 +122,44 @@ namespace WinuiWeatherForecastTray
             this.Closed += MainWindow_Closed;
 
             _ = RefreshWeatherAsync(isStartup: true);
+            _ = CheckForAppUpdateAsync();
+        }
+
+        private async Task CheckForAppUpdateAsync()
+        {
+            try
+            {
+                var updateService = new AppUpdateService();
+                GitHubUpdateChecker.AvailableUpdate? update = await updateService.CheckForUpdateAsync();
+                if (update is null || _isExiting)
+                    return;
+
+                ShowWindowToTray();
+                var dialog = new ContentDialog
+                {
+                    Title = _i18nService.GetString("UpdateAvailableTitle", "Update available"),
+                    Content = string.Format(_i18nService.GetString("UpdateAvailableMessage", "SkyTray Weather {0} is available. Install it now?"), update.Version),
+                    PrimaryButtonText = _i18nService.GetString("UpdateInstall", "Install update"),
+                    CloseButtonText = _i18nService.GetString("UpdateLater", "Later"),
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = Content.XamlRoot
+                };
+
+                if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+                {
+                    HideWindowToTray();
+                    return;
+                }
+
+                await updateService.InstallUpdateAsync(update);
+                _isExiting = true;
+                _trayIconManager.Dispose();
+                Microsoft.UI.Xaml.Application.Current.Exit();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Update check/install failed: {ex.Message}");
+            }
         }
 
         private void UpdateRefreshTimerInterval()
