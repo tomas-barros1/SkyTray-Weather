@@ -116,7 +116,7 @@ namespace WinuiWeatherForecastTray
         {
             GetCursorPos(out POINT cursor);
 
-            if (_window.IsShown && Contains(_window.Bounds.X, _window.Bounds.Y, _window.Bounds.Width, _window.Bounds.Height, cursor))
+            if (_window.IsShown && Contains(_window.CardBounds.X, _window.CardBounds.Y, _window.CardBounds.Width, _window.CardBounds.Height, cursor))
                 return true;
 
             if (_tray.TryGetIconRect(out RECT icon))

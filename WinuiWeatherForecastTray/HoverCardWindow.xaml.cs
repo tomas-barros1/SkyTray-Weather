@@ -72,7 +72,7 @@ namespace WinuiWeatherForecastTray
         }
 
         /// <summary>Screen rectangle (physical pixels) of the card while it is shown.</summary>
-        public RectInt32 Bounds { get; private set; }
+        public RectInt32 CardBounds { get; private set; }
 
         public bool IsShown { get; private set; }
 
@@ -129,7 +129,7 @@ namespace WinuiWeatherForecastTray
                 SetWindowPos(_hwnd, HWND_TOPMOST, bounds.X, bounds.Y, bounds.Width, bounds.Height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
             }
 
-            Bounds = bounds;
+            CardBounds = bounds;
             IsShown = true;
         }
 

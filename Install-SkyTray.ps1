@@ -4,9 +4,20 @@ $ErrorActionPreference = "Stop"
 $installDir = "$env:LOCALAPPDATA\SkyTrayWeather"
 $repoRoot = $PSScriptRoot
 $publishDir = Join-Path $repoRoot "publish"
+$csproj = Join-Path $repoRoot "WinuiWeatherForecastTray\WinuiWeatherForecastTray.csproj"
+
+# Se não houver pasta publish pronta, publica o projeto primeiro (release, win-x64, self-contained).
+if (-not (Test-Path $publishDir)) {
+    Write-Host "Pasta publish não encontrada. Publicando o projeto (isso pode demorar)..." -ForegroundColor Yellow
+    $publishOutput = dotnet publish $csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o $publishDir 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Falha ao publicar o projeto. Veja o erro do dotnet acima."
+    }
+    Write-Host $publishOutput
+}
 
 if (-not (Test-Path $publishDir)) {
-    $publishDir = Join-Path $repoRoot "WinuiWeatherForecastTray\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish"
+    Write-Error "Não foi possível localizar a pasta de publicação: $publishDir"
 }
 
 Write-Host "Installing SkyTray Weather to $installDir..." -ForegroundColor Cyan
