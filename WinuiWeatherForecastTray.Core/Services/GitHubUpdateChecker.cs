@@ -32,7 +32,10 @@ public sealed class GitHubUpdateChecker
             return null;
 
         string? installerUrl = release.Assets?.Find(asset => asset.Name == InstallerAssetName)?.DownloadUrl;
-        if (latestVersion <= currentVersion || !Uri.TryCreate(installerUrl, UriKind.Absolute, out Uri? uri) ||
+        // SDK-generated assembly versions commonly have a trailing .0 (1.6.2.0),
+        // while GitHub tags omit it (1.6.2). System.Version treats those as
+        // different, with 1.6.2.0 greater than 1.6.2, so compare padded versions.
+        if (NormalizeVersion(latestVersion) <= NormalizeVersion(currentVersion) || !Uri.TryCreate(installerUrl, UriKind.Absolute, out Uri? uri) ||
             uri.Scheme != Uri.UriSchemeHttps || uri.Host != "github.com")
             return null;
 
@@ -40,6 +43,12 @@ public sealed class GitHubUpdateChecker
     }
 
     private static string NormalizeVersion(string tag) => tag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? tag[1..] : tag;
+
+    private static Version NormalizeVersion(Version version) => new(
+        version.Major,
+        version.Minor,
+        Math.Max(version.Build, 0),
+        Math.Max(version.Revision, 0));
 
     public sealed record AvailableUpdate(Version Version, string InstallerUrl);
 

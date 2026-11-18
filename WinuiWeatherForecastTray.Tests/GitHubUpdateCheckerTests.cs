@@ -24,6 +24,17 @@ public sealed class GitHubUpdateCheckerTests
         update.InstallerUrl.Should().Be(InstallerUrl);
     }
 
+    [Fact]
+    public async Task CheckForUpdateAsync_WhenInstalledVersionHasTrailingZeroRevision_DoesNotOfferSameRelease()
+    {
+        const string currentReleaseInstallerUrl = "https://github.com/tomas-barros1/SkyTray-Weather/releases/download/v1.6.2/SkyTrayWeather-Setup-x64.exe";
+        var checker = CreateChecker(Release("v1.6.2", currentReleaseInstallerUrl));
+
+        GitHubUpdateChecker.AvailableUpdate? update = await checker.CheckForUpdateAsync(new Version(1, 6, 2, 0));
+
+        update.Should().BeNull();
+    }
+
     [Theory]
     [InlineData("v1.1.0")]
     [InlineData("v1.0.0")]
