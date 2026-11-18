@@ -6,14 +6,11 @@ $repoRoot = $PSScriptRoot
 $publishDir = Join-Path $repoRoot "publish"
 $csproj = Join-Path $repoRoot "WinuiWeatherForecastTray\WinuiWeatherForecastTray.csproj"
 
-# Se não houver pasta publish pronta, publica o projeto primeiro (release, win-x64, self-contained).
-if (-not (Test-Path $publishDir)) {
-    Write-Host "Pasta publish não encontrada. Publicando o projeto (isso pode demorar)..." -ForegroundColor Yellow
-    $publishOutput = dotnet publish $csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o $publishDir 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Falha ao publicar o projeto. Veja o erro do dotnet acima."
-    }
-    Write-Host $publishOutput
+Write-Host "Publicando o projeto (release, win-x64, self-contained; isso pode demorar)..." -ForegroundColor Yellow
+$publishOutput = dotnet publish $csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o $publishDir 2>&1
+Write-Host $publishOutput
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Falha ao publicar o projeto."
 }
 
 if (-not (Test-Path $publishDir)) {
