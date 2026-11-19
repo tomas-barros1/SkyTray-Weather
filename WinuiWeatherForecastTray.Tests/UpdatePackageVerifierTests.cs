@@ -17,6 +17,28 @@ public sealed class UpdatePackageVerifierTests
     private const string ChecksumsUrl = "https://github.com/tomas-barros1/SkyTray-Weather/releases/download/v2.0.0/SHA256SUMS.txt";
 
     [Fact]
+    public void UpdateLaunchCommandBuilder_CreatesSilentDetachedInstallAndRestartCommand()
+    {
+        string arguments = UpdateLaunchCommandBuilder.Create(
+            @"C:\Users\Tom\AppData\Local\Temp\SkyTray Setup.exe",
+            @"C:\Users\Tom\AppData\Local\SkyTrayWeather\WinuiWeatherForecastTray.exe");
+
+        arguments.Should().Be("/c \"\"C:\\Users\\Tom\\AppData\\Local\\Temp\\SkyTray Setup.exe\" /SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS && start \"\" \"C:\\Users\\Tom\\AppData\\Local\\SkyTrayWeather\\WinuiWeatherForecastTray.exe\"\"");
+    }
+
+    [Theory]
+    [InlineData("C:\\Unsafe%Path\\installer.exe", "C:\\app.exe")]
+    [InlineData("C:\\installer.exe", "C:\\Unsafe%Path\\app.exe")]
+    [InlineData("C:\\Unsafe\"Path\\installer.exe", "C:\\app.exe")]
+    [InlineData("C:\\installer.exe", "C:\\Unsafe\"Path\\app.exe")]
+    public void UpdateLaunchCommandBuilder_RejectsQuoteAndPercentInPaths(string installerPath, string applicationPath)
+    {
+        Action action = () => UpdateLaunchCommandBuilder.Create(installerPath, applicationPath);
+
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
     public void IsTrustedInstallerUrl_RejectsAnotherRepository()
     {
         UpdatePackageVerifier.IsTrustedInstallerUrl("https://github.com/attacker/Other/releases/download/v2.0.0/SkyTrayWeather-Setup-x64.exe")

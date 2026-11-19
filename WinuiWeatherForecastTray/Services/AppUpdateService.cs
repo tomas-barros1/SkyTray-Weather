@@ -28,11 +28,17 @@ namespace WinuiWeatherForecastTray.Services
             await UpdatePackageVerifier.DownloadVerifiedInstallerAsync(
                 HttpClient, update.InstallerUrl, update.ChecksumsUrl, installerPath, progress: progress);
 
+            string? applicationPath = Environment.ProcessPath;
+            if (applicationPath is null)
+                throw new InvalidOperationException("Could not determine the application executable path.");
+
             Process.Start(new ProcessStartInfo
             {
-                FileName = installerPath,
-                Arguments = "/SILENT /SUPPRESSMSGBOXES /NORESTART",
-                UseShellExecute = true
+                FileName = "cmd.exe",
+                Arguments = UpdateLaunchCommandBuilder.Create(installerPath, applicationPath),
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             });
             return true;
         }

@@ -151,7 +151,12 @@ namespace WinuiWeatherForecastTray
                     return;
                 }
 
-                await updateService.InstallUpdateAsync(update);
+                bool installerStarted = await updateService.InstallUpdateAsync(update);
+                if (!installerStarted)
+                {
+                    HideWindowToTray();
+                    return;
+                }
                 _isExiting = true;
                 _trayIconManager.Dispose();
                 Microsoft.UI.Xaml.Application.Current.Exit();
