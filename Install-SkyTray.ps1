@@ -3,18 +3,27 @@ $ErrorActionPreference = "Stop"
 
 $installDir = "$env:LOCALAPPDATA\SkyTrayWeather"
 $repoRoot = $PSScriptRoot
-$publishDir = Join-Path $repoRoot "publish"
-$csproj = Join-Path $repoRoot "WinuiWeatherForecastTray\WinuiWeatherForecastTray.csproj"
+$publishDir = $repoRoot
+$packageExecutable = Join-Path $publishDir "WinuiWeatherForecastTray.exe"
 
-Write-Host "Publicando o projeto (release, win-x64, self-contained; isso pode demorar)..." -ForegroundColor Yellow
-$publishOutput = dotnet publish $csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o $publishDir 2>&1
-Write-Host $publishOutput
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Falha ao publicar o projeto."
-}
+# Release ZIP layout: the installer script is next to the already-published app.
+if (-not (Test-Path -LiteralPath $packageExecutable -PathType Leaf)) {
+    $csproj = Join-Path $repoRoot "WinuiWeatherForecastTray\WinuiWeatherForecastTray.csproj"
+    if (-not (Test-Path -LiteralPath $csproj -PathType Leaf)) {
+        Write-Error "Neither a published app nor the source project was found beside this script."
+    }
 
-if (-not (Test-Path $publishDir)) {
-    Write-Error "Não foi possível localizar a pasta de publicação: $publishDir"
+    $publishDir = Join-Path $repoRoot "publish"
+    Write-Host "Published app not found. Publishing the source project (release, win-x64, self-contained)..." -ForegroundColor Yellow
+    dotnet publish $csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -o $publishDir
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to publish the source project (dotnet exit code $LASTEXITCODE)."
+    }
+
+    $packageExecutable = Join-Path $publishDir "WinuiWeatherForecastTray.exe"
+    if (-not (Test-Path -LiteralPath $packageExecutable -PathType Leaf)) {
+        Write-Error "Published app executable was not found: $packageExecutable"
+    }
 }
 
 Write-Host "Installing SkyTray Weather to $installDir..." -ForegroundColor Cyan
@@ -33,7 +42,7 @@ if (-not (Test-Path $installDir)) {
 }
 
 # Copy files
-Copy-Item -Path "$publishDir\*" -Destination $installDir -Recurse -Force
+Copy-Item -Path (Join-Path $publishDir "*") -Destination $installDir -Recurse -Force
 
 $exePath = "$installDir\WinuiWeatherForecastTray.exe"
 $icoPath = "$installDir\Assets\app.ico"
