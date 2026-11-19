@@ -16,14 +16,17 @@ namespace WinuiWeatherForecastTray.Services
         public async Task<GitHubUpdateChecker.AvailableUpdate?> CheckForUpdateAsync() =>
             await new GitHubUpdateChecker(HttpClient).CheckForUpdateAsync(GetCurrentVersion() ?? new Version(1, 0));
 
-        public async Task InstallUpdateAsync(GitHubUpdateChecker.AvailableUpdate update)
+        public async Task<bool> InstallUpdateAsync(GitHubUpdateChecker.AvailableUpdate update, IProgress<double>? progress = null)
         {
+            if (update.ChecksumsUrl is null)
+            {
+                Process.Start(new ProcessStartInfo(update.ReleasePageUrl) { UseShellExecute = true });
+                return false;
+            }
+
             string installerPath = Path.Combine(Path.GetTempPath(), $"SkyTrayWeather-Setup-{update.Version}.exe");
-            using HttpResponseMessage response = await HttpClient.GetAsync(update.InstallerUrl, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
-            await using (Stream source = await response.Content.ReadAsStreamAsync())
-            await using (FileStream destination = File.Create(installerPath))
-                await source.CopyToAsync(destination);
+            await UpdatePackageVerifier.DownloadVerifiedInstallerAsync(
+                HttpClient, update.InstallerUrl, update.ChecksumsUrl, installerPath, progress: progress);
 
             Process.Start(new ProcessStartInfo
             {
@@ -31,6 +34,7 @@ namespace WinuiWeatherForecastTray.Services
                 Arguments = "/SILENT /SUPPRESSMSGBOXES /NORESTART",
                 UseShellExecute = true
             });
+            return true;
         }
 
         private static HttpClient CreateHttpClient()

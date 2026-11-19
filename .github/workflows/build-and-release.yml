@@ -62,6 +62,16 @@ jobs:
           $ver = $ver -replace '^v', ''
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$ver" installer.iss
 
+      - name: Generate SHA-256 checksums
+        shell: powershell
+        run: |
+          $files = @("SkyTray-Weather-win-x64.zip", "Output/SkyTrayWeather-Setup-x64.exe")
+          $lines = foreach ($file in $files) {
+            $hash = (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $([IO.Path]::GetFileName($file))"
+          }
+          [IO.File]::WriteAllLines("$PWD/SHA256SUMS.txt", $lines, [Text.Encoding]::ASCII)
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -69,6 +79,7 @@ jobs:
           path: |
             SkyTray-Weather-win-x64.zip
             Output/SkyTrayWeather-Setup-x64.exe
+            SHA256SUMS.txt
           retention-days: 30
 
       - name: Create GitHub Release (On Tag Push)
@@ -78,6 +89,7 @@ jobs:
           files: |
             SkyTray-Weather-win-x64.zip
             Output/SkyTrayWeather-Setup-x64.exe
+            SHA256SUMS.txt
           name: SkyTray Weather Release ${{ github.ref_name }}
           draft: false
           prerelease: false

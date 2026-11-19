@@ -10,8 +10,8 @@ namespace WinuiWeatherForecastTray.Core.Services;
 /// <summary>Checks the latest stable GitHub release for a newer Windows installer.</summary>
 public sealed class GitHubUpdateChecker
 {
-    public const string LatestReleaseUrl = "https://api.github.com/repos/tomas-barros1/SkyTray-Weather/releases/latest";
-    public const string InstallerAssetName = "SkyTrayWeather-Setup-x64.exe";
+    public const string LatestReleaseUrl = AppUpdateConstants.LatestReleaseUrl;
+    public const string InstallerAssetName = AppUpdateConstants.InstallerAssetName;
 
     private readonly HttpClient _httpClient;
 
@@ -32,14 +32,18 @@ public sealed class GitHubUpdateChecker
             return null;
 
         string? installerUrl = release.Assets?.Find(asset => asset.Name == InstallerAssetName)?.DownloadUrl;
+        string? checksumsUrl = release.Assets?.Find(asset => asset.Name == AppUpdateConstants.ChecksumsAssetName)?.DownloadUrl;
+        string releasePageUrl = $"https://github.com/{AppUpdateConstants.RepositoryOwner}/{AppUpdateConstants.RepositoryName}/releases/tag/{Uri.EscapeDataString(release.TagName)}";
         // SDK-generated assembly versions commonly have a trailing .0 (1.6.2.0),
         // while GitHub tags omit it (1.6.2). System.Version treats those as
         // different, with 1.6.2.0 greater than 1.6.2, so compare padded versions.
-        if (NormalizeVersion(latestVersion) <= NormalizeVersion(currentVersion) || !Uri.TryCreate(installerUrl, UriKind.Absolute, out Uri? uri) ||
-            uri.Scheme != Uri.UriSchemeHttps || uri.Host != "github.com")
+        if (NormalizeVersion(latestVersion) <= NormalizeVersion(currentVersion) ||
+            !UpdatePackageVerifier.IsTrustedInstallerUrl(installerUrl) ||
+            (checksumsUrl is not null && (!UpdatePackageVerifier.IsTrustedChecksumsUrl(checksumsUrl) ||
+                !UpdatePackageVerifier.AreAssetsFromSameRelease(installerUrl!, checksumsUrl))))
             return null;
 
-        return new AvailableUpdate(latestVersion, uri.AbsoluteUri);
+        return new AvailableUpdate(latestVersion, installerUrl!, checksumsUrl, releasePageUrl);
     }
 
     private static string NormalizeVersion(string tag) => tag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? tag[1..] : tag;
@@ -50,7 +54,7 @@ public sealed class GitHubUpdateChecker
         Math.Max(version.Build, 0),
         Math.Max(version.Revision, 0));
 
-    public sealed record AvailableUpdate(Version Version, string InstallerUrl);
+    public sealed record AvailableUpdate(Version Version, string InstallerUrl, string? ChecksumsUrl, string ReleasePageUrl);
 
     private sealed class GitHubRelease
     {
