@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using WinuiWeatherForecastTray.Core.Services;
+using WinuiWeatherForecastTray.Services;
 using Xunit;
 
 namespace WinuiWeatherForecastTray.Tests;

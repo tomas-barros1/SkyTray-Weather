@@ -4,8 +4,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using WinuiWeatherForecastTray.Core.Services;
 
-namespace WinuiWeatherForecastTray.Core.Services;
+namespace WinuiWeatherForecastTray.Services;
 
 /// <summary>Checks the latest stable GitHub release for a newer Windows installer.</summary>
 public sealed class GitHubUpdateChecker

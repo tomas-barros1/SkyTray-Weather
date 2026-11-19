@@ -33,6 +33,7 @@ Com uma interface moderna inspirada nas diretrizes do Windows 11 (Acrylic/Mica),
 - 🧭 **Menu do Tray em WinUI**: o clique direito no ícone abre um menu (Configurações / Sair) com Acrylic e cantos arredondados, no mesmo estilo do painel e do cartão. Shift + clique direito abre o menu clássico do Windows como alternativa.
 - 📍 **Localização Automática**: Geolocalização nativa do Windows com fallback automático via IP e, se tudo falhar, a última localização conhecida.
 - 📴 **Funciona Offline**: A última previsão é salva em disco e exibida como "Offline · atualizado às HH:mm" quando a rede cai (até 6 horas). Falhas temporárias de rede/servidor são repetidas automaticamente.
+- 🔄 **Atualizações Automáticas**: Verifica após cerca de 2 minutos e depois usa um timer de 6 horas, respeitando pelo menos 20 horas entre consultas. A opção pode ser desligada nas Configurações. Uma atualização aparece ali e no menu do tray; o app baixa o instalador somente quando o SHA-256 publicado no mesmo release confere. A consulta usa a API do GitHub (`api.github.com`); se o release não tiver checksums, a página do release é aberta.
 - 📊 **Painel com 11 Métricas de Clima**:
   - 🌡️ Temperatura e Sensação Térmica
   - ☁️ Nebulosidade (%)
@@ -74,6 +75,7 @@ O aplicativo será instalado em `%LocalAppData%\SkyTrayWeather` com atalho criad
 | **[BigDataCloud](https://www.bigdatacloud.com/)** | Geocodificação reversa (coordenadas → nome da cidade) | Grátis |
 | **[ipapi.co](https://ipapi.co/)** | Fallback de geolocalização via IP quando a localização nativa não está disponível | Grátis |
 | **[ipwho.is](https://ipwho.is/)** | Segundo fallback de geolocalização via IP (HTTPS) | Grátis |
+| **[GitHub Releases API](https://api.github.com/repos/tomas-barros1/SkyTray-Weather/releases/latest)** | Consulta a versão estável; o instalador e os checksums são baixados dos assets do release no GitHub | API pública |
 
 > O dado de **"☔ Chuva"** exibido no painel é a **probabilidade de precipitação** (`precipitation_probability`) da hora atual, fornecida pela Open-Meteo — não a leitura instantânea em mm.
 
@@ -112,7 +114,7 @@ Featuring a modern Windows 11 Fluent interface (Acrylic/Mica backdrop), SkyTray 
 - 🧭 **WinUI Tray Menu**: right-clicking the icon opens a menu (Settings / Exit) with Acrylic and rounded corners, matching the panel and the hover card. Shift + right click opens the classic Windows menu as a fallback.
 - 📍 **Automatic Location Detection**: Windows native Geolocator with automatic IP geolocation fallback and, if everything fails, the last known location.
 - 📴 **Works Offline**: The last forecast is saved to disk and shown as "Offline · updated HH:mm" when the network is down (up to 6 hours). Transient network/server errors are retried automatically.
-- 🔄 **Automatic Updates**: Checks GitHub Releases at startup and offers to install newer stable versions.
+- 🔄 **Automatic Updates**: Checks after about 2 minutes, then uses a 6-hour timer while keeping at least 20 hours between network checks. You can disable this in Settings. Updates appear in Settings and the tray menu; the app installs the release installer only after its SHA-256 matches the checksum published with that same release. It checks `api.github.com`; if a release has no checksum file, it opens the release page instead.
 - 📊 **11 Weather Metrics Dashboard**:
   - 🌡️ Temperature & Feels Like Temperature
   - ☁️ Cloud Cover (%)
@@ -154,6 +156,7 @@ The application installs to `%LocalAppData%\SkyTrayWeather` and creates a Start 
 | **[BigDataCloud](https://www.bigdatacloud.com/)** | Reverse geocoding (coordinates → city name) | Free |
 | **[ipapi.co](https://ipapi.co/)** | IP-based geolocation fallback when native Windows location is unavailable | Free |
 | **[ipwho.is](https://ipwho.is/)** | Second IP-based geolocation fallback (HTTPS) | Free |
+| **[GitHub Releases API](https://api.github.com/repos/tomas-barros1/SkyTray-Weather/releases/latest)** | Checks the stable version; installer and checksums are downloaded from that GitHub release's assets | Public API |
 
 > The **"☔ Rain"** panel value shows the **precipitation probability** (`precipitation_probability`) for the current hour from Open-Meteo — not the instantaneous mm accumulation.
 

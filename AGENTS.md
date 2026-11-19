@@ -66,10 +66,19 @@ CI in `.github/workflows/build-and-release.yml` follows the same pattern. Tests 
 
 1. Trigger: push to `main`, PR to `main`, or tag matching `v*`.
 2. Runs on `windows-latest`, .NET SDK `10.0.x`.
-3. Steps in order: restore → **test** → publish `win-x64` self-contained → zip with `Install-SkyTray.ps1` → build the Inno Setup installer (`installer.iss`) → upload artifacts (`SkyTray-Weather-win-x64.zip` and `Output/SkyTrayWeather-Setup-x64.exe`, 30-day retention).
+3. Steps in order: restore → **test** → publish `win-x64` self-contained → zip with `Install-SkyTray.ps1` → build the Inno Setup installer (`installer.iss`) → generate `SHA256SUMS.txt` for the zip and installer → upload all three release assets (30-day artifact retention).
 4. On `v*` tag push: creates a GitHub Release named `SkyTray Weather Release <tag>` with the zip **and** the installer attached.
 
 To cut a release locally without CI: publish, zip, and upload — see commands above. Output artifacts: `SkyTray-Weather-win-x64.zip` and `SkyTrayWeather-Setup-x64.exe` (the `Install-SkyTray.ps1` next to it copies `%LocalAppData%\SkyTrayWeather` and creates a Start Menu shortcut).
+
+## App updates
+
+- `GitHubUpdateChecker` lives in `WinuiWeatherForecastTray.Core/Services` and uses the `WinuiWeatherForecastTray.Services` namespace. It checks the stable GitHub Releases API and ignores prereleases; builds with major version `0` are development builds and never perform update checks.
+- Automatic checks are enabled by default. `MainWindow` schedules the first check about 2 minutes after launch, then ticks about every 6 hours; persisted UTC registry state enforces at least 20 hours between network calls. `SettingsWindow` provides the toggle, manual check, status and verified install flow. Background failures never show a dialog.
+- CI publishes `SHA256SUMS.txt` with checksums for both the zip and installer. The installer update path must remain `https://github.com/tomas-barros1/SkyTray-Weather/releases/download/...`; the app downloads the checksum from the same release, limits installer size to 100 MiB, writes to `.download`, compares SHA-256 in constant time, and deletes files if verification fails. If checksums are missing, it opens the release page and does not run the installer.
+- Silent update launches Inno Setup through a hidden `cmd.exe` command that starts the app again after a successful install. Paths containing `"` or `%` must be rejected before constructing that command.
+- `Install-SkyTray.ps1` supports both layouts: use the files beside the script when the published executable is present (release zip), otherwise publish the source project.
+- Update checks contact `api.github.com`; keep this in the README's data-source table. The installer is not signed; do not describe it as signed.
 
 ## Things that are easy to miss
 

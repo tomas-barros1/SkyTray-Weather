@@ -3,6 +3,18 @@
 All notable changes to SkyTray Weather are documented here.
 Older releases: see [GitHub Releases](https://github.com/tomas-barros1/SkyTray-Weather/releases).
 
+## [Unreleased]
+
+### Added
+- Update settings with automatic checking (about 2 minutes after startup, then a 6-hour timer and at least 20 hours between network checks), manual checks, visible status, download progress and install confirmation.
+- GitHub release checksum generation for the installer and ZIP. The app validates release asset URLs and the installer SHA-256 before running it; when checksums are absent it opens the release page.
+- Silent update relaunches the application after Inno Setup completes.
+
+### Changed
+- Development builds use version `0.0.0-dev` and never contact the update API.
+- The ZIP installer script installs files already beside itself or publishes from source when run from the repository.
+- Documented GitHub Releases API as an update data source.
+
 ## [1.6.1] - 2026-11-14
 
 ### Added
