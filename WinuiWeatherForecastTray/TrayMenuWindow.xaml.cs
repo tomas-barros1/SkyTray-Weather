@@ -23,6 +23,7 @@ namespace WinuiWeatherForecastTray
         /// <summary>Menu size in device-independent pixels; converted to physical pixels per monitor DPI.</summary>
         public const int WidthDips = 196;
         public const int HeightDips = 92;
+        private const int UpdateHeightDips = 136;
 
         private const int GapDips = 8;
         private const int MarginDips = 8;
@@ -42,7 +43,9 @@ namespace WinuiWeatherForecastTray
         private readonly IntPtr _hwnd;
 
         public event EventHandler? SettingsRequested;
+        public event EventHandler? UpdateRequested;
         public event EventHandler? ExitRequested;
+        private Version? _availableVersion;
 
         public TrayMenuWindow(II18nService i18nService)
         {
@@ -56,6 +59,7 @@ namespace WinuiWeatherForecastTray
 
             TxtSettings.Text = i18nService.GetString("Settings", "Settings");
             TxtExit.Text = i18nService.GetString("Exit", "Exit");
+            BtnUpdate.Visibility = Visibility.Collapsed;
 
             Activated += (s, e) =>
             {
@@ -67,6 +71,15 @@ namespace WinuiWeatherForecastTray
         }
 
         public bool IsShown { get; private set; }
+
+        public void SetAvailableUpdate(Version? version, II18nService i18nService)
+        {
+            _availableVersion = version;
+            BtnUpdate.Visibility = version is null ? Visibility.Collapsed : Visibility.Visible;
+            TxtUpdate.Text = version is null
+                ? string.Empty
+                : string.Format(i18nService.GetString("UpdateTrayMenu", "Update to {0}"), version);
+        }
 
         /// <summary>Opens the menu next to <paramref name="anchor"/> (the tray icon, physical pixels) and gives it focus.</summary>
         public void ShowNear(RECT anchor)
@@ -103,7 +116,7 @@ namespace WinuiWeatherForecastTray
         {
             double scale = PopupWindowHelper.GetScale(_hwnd);
             int width = (int)Math.Round(WidthDips * scale);
-            int height = (int)Math.Round(HeightDips * scale);
+            int height = (int)Math.Round((_availableVersion is null ? HeightDips : UpdateHeightDips) * scale);
 
             (int x, int y) = PopupPlacement.Calculate(
                 anchor.Left, anchor.Top, anchor.Right, anchor.Bottom,
@@ -124,6 +137,12 @@ namespace WinuiWeatherForecastTray
         {
             Hide();
             ExitRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void BtnUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            Hide();
+            UpdateRequested?.Invoke(this, EventArgs.Empty);
         }
 
         private void RootGrid_KeyDown(object sender, KeyRoutedEventArgs e)

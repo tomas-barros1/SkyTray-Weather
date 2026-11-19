@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Media;
 using Windows.Graphics;
 using WinuiWeatherForecastTray.Services;
 using WinuiWeatherForecastTray.Services.Interfaces;
+using WinuiWeatherForecastTray.Core.Services;
 using WinRT.Interop;
 
 namespace WinuiWeatherForecastTray
@@ -17,29 +18,38 @@ namespace WinuiWeatherForecastTray
     {
         // Window size in device-independent pixels; converted to physical pixels per monitor DPI.
         private const int WindowWidthDips = 360;
-        private const int WindowHeightDips = 346;
+        private const int WindowHeightDips = 500;
 
         private readonly IAutostartService _autostartService;
         private readonly ISettingsService _settingsService;
         private readonly ILocationCacheService _locationCacheService;
         private readonly IForecastCacheService _forecastCacheService;
         private readonly II18nService _i18nService;
+        private readonly AppUpdateService _updateService;
+        private GitHubUpdateChecker.AvailableUpdate? _availableUpdate;
+        private bool _updateOperationInProgress;
         private IntPtr _hwnd;
         private AppWindow _appWindow;
         private bool _isInitializing = true;
 
         public event EventHandler? SettingsChanged;
+        public event EventHandler? AutoUpdateSettingChanged;
 
         /// <summary>Raised after the location and forecast caches were cleared.</summary>
         public event EventHandler? CacheCleared;
+        public event Action<GitHubUpdateChecker.AvailableUpdate?>? UpdateAvailabilityChanged;
+        public event EventHandler? UpdateInstallStarted;
 
-        public SettingsWindow(II18nService i18nService)
+        internal SettingsWindow(II18nService i18nService, ISettingsService settingsService, AppUpdateService updateService,
+            GitHubUpdateChecker.AvailableUpdate? availableUpdate = null)
         {
             InitializeComponent();
 
             _i18nService = i18nService ?? new I18nService();
             _autostartService = new AutostartService();
-            _settingsService = new SettingsService();
+            _settingsService = settingsService;
+            _updateService = updateService;
+            _availableUpdate = availableUpdate;
             _locationCacheService = new LocationCacheService();
             _forecastCacheService = new ForecastCacheService();
 
@@ -86,12 +96,20 @@ namespace WinuiWeatherForecastTray
             TxtLocationCache.Text = _i18nService.GetString("LocationCache", "Location Cache:");
             TxtClearCache.Text = _i18nService.GetString("ClearCache", "Clear Cache");
             TxtHoverCard.Text = _i18nService.GetString("HoverCard", "Show weather card when hovering the tray icon");
+            TxtAutoUpdate.Text = _i18nService.GetString("AutoUpdateEnabled", "Check for updates automatically");
+            TxtCheckUpdates.Text = _i18nService.GetString("UpdateCheckNow", "Check now");
+            TxtInstallUpdate.Text = _i18nService.GetString("UpdateDownloadInstall", "Download and install");
         }
 
         private void LoadSettings()
         {
             ChkAutostart.IsChecked = _autostartService.IsAutostartEnabled();
             ChkHoverCard.IsChecked = _settingsService.GetHoverCardEnabled();
+            ChkAutoUpdate.IsChecked = _settingsService.GetAutoUpdateEnabled();
+            if (_availableUpdate is not null)
+                SetAvailableUpdate(_availableUpdate);
+            else
+                TxtUpdateStatus.Text = string.Empty;
 
             int currentMinutes = _settingsService.GetRefreshIntervalMinutes();
             foreach (ComboBoxItem item in CmbRefreshInterval.Items)
@@ -114,6 +132,124 @@ namespace WinuiWeatherForecastTray
         {
             _settingsService.SetHoverCardEnabled(ChkHoverCard.IsChecked ?? true);
             SettingsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void ChkAutoUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            _settingsService.SetAutoUpdateEnabled(ChkAutoUpdate.IsChecked ?? true);
+            AutoUpdateSettingChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void SetAvailableUpdate(GitHubUpdateChecker.AvailableUpdate? update)
+        {
+            _availableUpdate = update;
+            BtnInstallUpdate.Visibility = update is null ? Visibility.Collapsed : Visibility.Visible;
+            TxtUpdateStatus.Text = update is null
+                ? _i18nService.GetString("UpdateStatusCurrent", "You are up to date")
+                : string.Format(_i18nService.GetString("UpdateStatusAvailable", "Version {0} available"), update.Version);
+        }
+
+        public void SetUpdateCheckFailed()
+        {
+            TxtUpdateStatus.Text = _i18nService.GetString("UpdateStatusFailed", "Could not check for updates");
+        }
+
+        private async void BtnCheckUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            if (_updateOperationInProgress)
+                return;
+
+            if (_updateService.IsDevelopmentBuild)
+            {
+                SetAvailableUpdate(null);
+                UpdateAvailabilityChanged?.Invoke(null);
+                return;
+            }
+
+            DateTime now = DateTime.UtcNow;
+            if (!UpdateCheckPolicy.CanCheckNow(now, _settingsService.GetLastUpdateCheckUtc()))
+            {
+                TxtUpdateStatus.Text = _i18nService.GetString("UpdateStatusRecentlyChecked", "Updates were checked recently");
+                return;
+            }
+
+            SetUpdateCheckInProgress(true);
+            TxtUpdateError.Visibility = Visibility.Collapsed;
+            TxtUpdateStatus.Text = _i18nService.GetString("UpdateStatusChecking", "Checking for updates...");
+            _settingsService.SetLastUpdateCheckUtc(now);
+            try
+            {
+                GitHubUpdateChecker.AvailableUpdate? update = await _updateService.CheckForUpdateAsync();
+                SetAvailableUpdate(update);
+                UpdateAvailabilityChanged?.Invoke(update);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Update check failed: {ex}");
+                SetUpdateCheckFailed();
+            }
+            finally
+            {
+                SetUpdateCheckInProgress(false);
+            }
+        }
+
+        private async void BtnInstallUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            if (_availableUpdate is null || _updateOperationInProgress)
+                return;
+
+            var confirmation = new ContentDialog
+            {
+                Title = _i18nService.GetString("UpdateAvailableTitle", "Update available"),
+                Content = string.Format(
+                    _i18nService.GetString("UpdateConfirmInstall", "Download and verify version {0}, then install it?"),
+                    _availableUpdate.Version),
+                PrimaryButtonText = _i18nService.GetString("UpdateDownloadInstall", "Download and install"),
+                CloseButtonText = _i18nService.GetString("UpdateLater", "Later"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = RootGrid.XamlRoot
+            };
+            if (await confirmation.ShowAsync() != ContentDialogResult.Primary)
+                return;
+
+            SetUpdateCheckInProgress(true);
+            TxtUpdateError.Visibility = Visibility.Collapsed;
+            TxtUpdateStatus.Text = _i18nService.GetString("UpdateDownloading", "Downloading update...");
+            PrgUpdateDownload.Visibility = Visibility.Visible;
+            PrgUpdateDownload.Value = 0;
+            var progress = new Progress<double>(value => PrgUpdateDownload.Value = value * 100);
+            try
+            {
+                bool started = await _updateService.InstallUpdateAsync(_availableUpdate, progress);
+                if (started)
+                {
+                    UpdateInstallStarted?.Invoke(this, EventArgs.Empty);
+                }
+                else
+                {
+                    TxtUpdateStatus.Text = _i18nService.GetString("UpdateChecksumsMissing", "Checksums are unavailable. Opening the release page.");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Update install failed: {ex}");
+                TxtUpdateError.Text = _i18nService.GetString("UpdateInstallError", "Could not verify or install the update");
+                TxtUpdateError.Visibility = Visibility.Visible;
+                TxtUpdateStatus.Text = _i18nService.GetString("UpdateStatusFailed", "Could not check for updates");
+            }
+            finally
+            {
+                PrgUpdateDownload.Visibility = Visibility.Collapsed;
+                SetUpdateCheckInProgress(false);
+            }
+        }
+
+        private void SetUpdateCheckInProgress(bool inProgress)
+        {
+            _updateOperationInProgress = inProgress;
+            BtnCheckUpdates.IsEnabled = !inProgress;
+            BtnInstallUpdate.IsEnabled = !inProgress;
         }
 
         private void CmbRefreshInterval_SelectionChanged(object sender, SelectionChangedEventArgs e)

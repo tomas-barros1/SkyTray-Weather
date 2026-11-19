@@ -10,4 +10,7 @@ public static class AppUpdateConstants
     public const string ReleaseAssetPathPrefix = "/tomas-barros1/SkyTray-Weather/releases/download/";
     public const long MaximumInstallerSizeBytes = 100L * 1024 * 1024;
     public const int MaximumChecksumsSizeBytes = 64 * 1024;
+    public static readonly TimeSpan InitialUpdateCheckDelay = TimeSpan.FromMinutes(2);
+    public static readonly TimeSpan AutomaticUpdateCheckInterval = TimeSpan.FromHours(6);
+    public static readonly TimeSpan MinimumUpdateCheckInterval = TimeSpan.FromHours(20);
 }

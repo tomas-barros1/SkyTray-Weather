@@ -13,6 +13,8 @@ namespace WinuiWeatherForecastTray.Services
     {
         private static readonly HttpClient HttpClient = CreateHttpClient();
 
+        public bool IsDevelopmentBuild => GetCurrentVersion()?.Major == 0;
+
         public async Task<GitHubUpdateChecker.AvailableUpdate?> CheckForUpdateAsync() =>
             await new GitHubUpdateChecker(HttpClient).CheckForUpdateAsync(GetCurrentVersion() ?? new Version(1, 0));
 

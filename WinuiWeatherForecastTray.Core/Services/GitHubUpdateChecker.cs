@@ -23,12 +23,14 @@ public sealed class GitHubUpdateChecker
     public async Task<AvailableUpdate?> CheckForUpdateAsync(Version currentVersion, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(currentVersion);
+        if (currentVersion.Major == 0)
+            return null;
 
         using HttpResponseMessage response = await _httpClient.GetAsync(LatestReleaseUrl, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         GitHubRelease? release = await JsonSerializer.DeserializeAsync<GitHubRelease>(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-        if (release?.TagName is null || !Version.TryParse(NormalizeVersion(release.TagName), out Version? latestVersion))
+        if (release?.TagName is null || release.Prerelease || !TryParseStableVersion(release.TagName, out Version? latestVersion))
             return null;
 
         string? installerUrl = release.Assets?.Find(asset => asset.Name == InstallerAssetName)?.DownloadUrl;
@@ -40,13 +42,33 @@ public sealed class GitHubUpdateChecker
         if (NormalizeVersion(latestVersion) <= NormalizeVersion(currentVersion) ||
             !UpdatePackageVerifier.IsTrustedInstallerUrl(installerUrl) ||
             (checksumsUrl is not null && (!UpdatePackageVerifier.IsTrustedChecksumsUrl(checksumsUrl) ||
-                !UpdatePackageVerifier.AreAssetsFromSameRelease(installerUrl!, checksumsUrl))))
+                !UpdatePackageVerifier.AreAssetsFromSameRelease(installerUrl!, checksumsUrl))) ||
+            !UpdatePackageVerifier.IsAssetForTag(installerUrl!, release.TagName) ||
+            (checksumsUrl is not null && !UpdatePackageVerifier.IsAssetForTag(checksumsUrl, release.TagName)))
             return null;
 
         return new AvailableUpdate(latestVersion, installerUrl!, checksumsUrl, releasePageUrl);
     }
 
-    private static string NormalizeVersion(string tag) => tag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? tag[1..] : tag;
+    private static bool TryParseStableVersion(string tag, out Version version)
+    {
+        version = new Version(0, 0);
+        string normalized = tag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? tag[1..] : tag;
+        int metadataIndex = normalized.IndexOf('+');
+        if (metadataIndex >= 0)
+            normalized = normalized[..metadataIndex];
+
+        if (normalized.Contains('-'))
+            return false;
+
+        if (Version.TryParse(normalized, out Version? parsed) && parsed is not null)
+        {
+            version = parsed;
+            return true;
+        }
+
+        return false;
+    }
 
     private static Version NormalizeVersion(Version version) => new(
         version.Major,
@@ -60,6 +82,9 @@ public sealed class GitHubUpdateChecker
     {
         [JsonPropertyName("tag_name")]
         public string? TagName { get; init; }
+
+        [JsonPropertyName("prerelease")]
+        public bool Prerelease { get; init; }
 
         [JsonPropertyName("assets")]
         public System.Collections.Generic.List<ReleaseAsset>? Assets { get; init; }

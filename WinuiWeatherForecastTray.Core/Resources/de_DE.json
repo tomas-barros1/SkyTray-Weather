@@ -60,5 +60,18 @@
   "UpdateAvailableTitle": "Update verfugbar",
   "UpdateAvailableMessage": "SkyTray Weather {0} ist verfugbar. Jetzt installieren?",
   "UpdateInstall": "Update installieren",
-  "UpdateLater": "Spater"
+  "UpdateLater": "Später",
+  "AutoUpdateEnabled": "Updates automatisch suchen",
+  "UpdateCheckNow": "Jetzt suchen",
+  "UpdateStatusCurrent": "Sie sind auf dem neuesten Stand",
+  "UpdateStatusAvailable": "Version {0} verfügbar",
+  "UpdateStatusFailed": "Updates konnten nicht gesucht werden",
+  "UpdateStatusChecking": "Suche nach Updates...",
+  "UpdateStatusRecentlyChecked": "Updates wurden kürzlich gesucht",
+  "UpdateDownloadInstall": "Herunterladen und installieren",
+  "UpdateConfirmInstall": "Version {0} herunterladen, überprüfen und installieren?",
+  "UpdateDownloading": "Update wird heruntergeladen...",
+  "UpdateInstallError": "Update konnte nicht überprüft oder installiert werden",
+  "UpdateChecksumsMissing": "Keine Prüfsummen verfügbar. Release-Seite wird geöffnet.",
+  "UpdateTrayMenu": "Auf {0} aktualisieren"
 }

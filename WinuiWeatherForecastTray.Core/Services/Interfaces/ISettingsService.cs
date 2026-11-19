@@ -9,4 +9,9 @@ public interface ISettingsService
     bool GetHoverCardEnabled();
 
     void SetHoverCardEnabled(bool enabled);
+
+    bool GetAutoUpdateEnabled();
+    void SetAutoUpdateEnabled(bool enabled);
+    DateTime? GetLastUpdateCheckUtc();
+    void SetLastUpdateCheckUtc(DateTime valueUtc);
 }

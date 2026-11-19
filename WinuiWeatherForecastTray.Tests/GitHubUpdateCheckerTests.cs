@@ -24,6 +24,42 @@ public sealed class GitHubUpdateCheckerTests
         update.InstallerUrl.Should().Be(InstallerUrl);
     }
 
+    [Theory]
+    [InlineData("v1.6.10", 1, 6, 9)]
+    [InlineData("v1.6.10+sha.abc", 1, 6, 9)]
+    public async Task CheckForUpdateAsync_WhenStableSemanticVersionIsNewer_ReturnsUpdate(string tag, int major, int minor, int build)
+    {
+        var checker = CreateChecker(ReleaseForTag(tag));
+
+        GitHubUpdateChecker.AvailableUpdate? update = await checker.CheckForUpdateAsync(new Version(major, minor, build));
+
+        update.Should().NotBeNull();
+        update!.Version.Should().Be(new Version(1, 6, 10));
+    }
+
+    [Theory]
+    [InlineData("v1.7.0-beta.1", false)]
+    [InlineData("v1.7.0", true)]
+    public async Task CheckForUpdateAsync_WhenReleaseIsPrerelease_ReturnsNull(string tag, bool prerelease)
+    {
+        var checker = CreateChecker(ReleaseForTag(tag, prerelease));
+
+        GitHubUpdateChecker.AvailableUpdate? update = await checker.CheckForUpdateAsync(new Version(1, 6, 9));
+
+        update.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CheckForUpdateAsync_WhenCurrentVersionIsDevelopment_DoesNotCallNetwork()
+    {
+        var handler = new MockHttpMessageHandler(_ => throw new InvalidOperationException("Network should not be called."));
+        var checker = new GitHubUpdateChecker(new HttpClient(handler));
+
+        GitHubUpdateChecker.AvailableUpdate? update = await checker.CheckForUpdateAsync(new Version(0, 0, 0, 0));
+
+        update.Should().BeNull();
+    }
+
     [Fact]
     public async Task CheckForUpdateAsync_WhenInstalledVersionHasTrailingZeroRevision_DoesNotOfferSameRelease()
     {
@@ -101,4 +137,11 @@ public sealed class GitHubUpdateCheckerTests
 
     private static string Release(string tag, string installerUrl) =>
         $$"""{"tag_name":"{{tag}}","assets":[{"name":"SkyTrayWeather-Setup-x64.exe","browser_download_url":"{{installerUrl}}"}]}""";
+
+    private static string ReleaseForTag(string tag, bool prerelease = false)
+    {
+        string encodedTag = Uri.EscapeDataString(tag);
+        string installer = $"https://github.com/tomas-barros1/SkyTray-Weather/releases/download/{encodedTag}/{GitHubUpdateChecker.InstallerAssetName}";
+        return $$"""{"tag_name":"{{tag}}","prerelease":{{prerelease.ToString().ToLowerInvariant()}},"assets":[{"name":"{{GitHubUpdateChecker.InstallerAssetName}}","browser_download_url":"{{installer}}"}]}""";
+    }
 }

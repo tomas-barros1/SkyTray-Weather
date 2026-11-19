@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using WinuiWeatherForecastTray.Services.Interfaces;
 
 namespace WinuiWeatherForecastTray.Services;
@@ -12,6 +13,8 @@ public sealed class SettingsService : ISettingsService
     private const string RefreshIntervalKey = "RefreshIntervalMinutes";
     private const int DefaultInterval = 15;
     private const string HoverCardKey = "HoverCardEnabled";
+    private const string AutoUpdateKey = "AutoUpdateEnabled";
+    private const string LastUpdateCheckUtcKey = "LastUpdateCheckUtc";
 
     /// <inheritdoc/>
     public int GetRefreshIntervalMinutes()
@@ -87,6 +90,75 @@ public sealed class SettingsService : ISettingsService
         catch (Exception ex)
         {
             DebugLog.Swallowed(typeof(SettingsService), ex, "SetHoverCardEnabled failed");
+        }
+    }
+
+    public bool GetAutoUpdateEnabled()
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(SettingsRegistryKey, false);
+                if (key?.GetValue(AutoUpdateKey) is int value)
+                    return value != 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.Swallowed(typeof(SettingsService), ex, "GetAutoUpdateEnabled failed");
+        }
+        return true;
+    }
+
+    public void SetAutoUpdateEnabled(bool enabled)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(SettingsRegistryKey, true);
+                key?.SetValue(AutoUpdateKey, enabled ? 1 : 0);
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.Swallowed(typeof(SettingsService), ex, "SetAutoUpdateEnabled failed");
+        }
+    }
+
+    public DateTime? GetLastUpdateCheckUtc()
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(SettingsRegistryKey, false);
+                if (key?.GetValue(LastUpdateCheckUtcKey) is string value &&
+                    DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime parsed))
+                    return parsed.ToUniversalTime();
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.Swallowed(typeof(SettingsService), ex, "GetLastUpdateCheckUtc failed");
+        }
+        return null;
+    }
+
+    public void SetLastUpdateCheckUtc(DateTime valueUtc)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(SettingsRegistryKey, true);
+                key?.SetValue(LastUpdateCheckUtcKey, valueUtc.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.Swallowed(typeof(SettingsService), ex, "SetLastUpdateCheckUtc failed");
         }
     }
 }

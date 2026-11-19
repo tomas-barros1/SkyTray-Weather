@@ -29,6 +29,14 @@ public static class UpdatePackageVerifier
 
     public static bool AreAssetsFromSameRelease(string first, string second) => SameReleaseDirectory(first, second);
 
+    public static bool IsAssetForTag(string url, string tag)
+    {
+        if (!IsTrustedReleaseAssetUrl(url))
+            return false;
+        string expectedPrefix = AppUpdateConstants.ReleaseAssetPathPrefix + Uri.EscapeDataString(tag) + "/";
+        return new Uri(url).AbsolutePath.StartsWith(expectedPrefix, StringComparison.Ordinal);
+    }
+
     public static bool TryGetExpectedSha256(string? checksums, string fileName, out byte[] expectedHash)
     {
         ArgumentNullException.ThrowIfNull(fileName);

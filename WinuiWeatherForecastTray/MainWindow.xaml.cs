@@ -52,6 +52,8 @@ namespace WinuiWeatherForecastTray
         private readonly ISettingsService _settingsService;
         private readonly TrayIconManager _trayIconManager;
         private readonly DispatcherTimer _autoRefreshTimer;
+        private readonly DispatcherTimer _updateCheckTimer;
+        private readonly AppUpdateService _updateService;
         private IntPtr _hwnd;
         private AppWindow _appWindow;
         private WndProcDelegate? _wndProcDelegate;
@@ -64,6 +66,8 @@ namespace WinuiWeatherForecastTray
         private bool _isRefreshing = false;
         private HoverCardController? _hoverCard;
         private TrayMenuWindow? _trayMenu;
+        private GitHubUpdateChecker.AvailableUpdate? _availableUpdate;
+        private bool _isUpdateCheckInProgress;
         private static readonly int[] StartupRetryDelaysSeconds = { 10, 30, 60 };
         private DateTime _lastDeactivatedTime = DateTime.MinValue;
 
@@ -80,6 +84,7 @@ namespace WinuiWeatherForecastTray
 
             _i18nService = new I18nService();
             _settingsService = new SettingsService();
+            _updateService = new AppUpdateService();
             IApiService apiService = new ApiService();
             ILocationService locationService = new LocationService();
             IGeocodingService geocodingService = new GeocodingService();
@@ -106,6 +111,7 @@ namespace WinuiWeatherForecastTray
 
             _trayMenu = new TrayMenuWindow(_i18nService);
             _trayMenu.SettingsRequested += (s, e) => TrayIconManager_SettingsRequested(s, e);
+            _trayMenu.UpdateRequested += (s, e) => TrayIconManager_SettingsRequested(s, e);
             _trayMenu.ExitRequested += (s, e) => TrayIconManager_ExitRequested(s, e);
             _trayIconManager.TrayIconRightClicked += TrayIconManager_TrayIconRightClicked;
 
@@ -118,53 +124,64 @@ namespace WinuiWeatherForecastTray
             UpdateRefreshTimerInterval();
             _autoRefreshTimer.Start();
 
+            _updateCheckTimer = new DispatcherTimer { Interval = AppUpdateConstants.InitialUpdateCheckDelay };
+            _updateCheckTimer.Tick += UpdateCheckTimer_Tick;
+            ConfigureAutomaticUpdateTimer(isStartup: true);
+
             this.Activated += MainWindow_Activated;
             this.Closed += MainWindow_Closed;
 
             _ = RefreshWeatherAsync(isStartup: true);
-            _ = CheckForAppUpdateAsync();
+        }
+
+        private async void UpdateCheckTimer_Tick(object? sender, object e)
+        {
+            _updateCheckTimer.Stop();
+            if (!_settingsService.GetAutoUpdateEnabled() || _updateService.IsDevelopmentBuild || _isExiting)
+                return;
+
+            if (UpdateCheckPolicy.CanCheckNow(DateTime.UtcNow, _settingsService.GetLastUpdateCheckUtc()))
+                await CheckForAppUpdateAsync();
+
+            if (!_isExiting && _settingsService.GetAutoUpdateEnabled() && !_updateService.IsDevelopmentBuild)
+            {
+                _updateCheckTimer.Interval = AppUpdateConstants.AutomaticUpdateCheckInterval;
+                _updateCheckTimer.Start();
+            }
         }
 
         private async Task CheckForAppUpdateAsync()
         {
+            if (_isUpdateCheckInProgress || _isExiting)
+                return;
+
+            DateTime checkStartedUtc = DateTime.UtcNow;
+            if (!UpdateCheckPolicy.CanCheckNow(checkStartedUtc, _settingsService.GetLastUpdateCheckUtc()))
+                return;
+
+            _isUpdateCheckInProgress = true;
+            _settingsService.SetLastUpdateCheckUtc(checkStartedUtc);
             try
             {
-                var updateService = new AppUpdateService();
-                GitHubUpdateChecker.AvailableUpdate? update = await updateService.CheckForUpdateAsync();
-                if (update is null || _isExiting)
-                    return;
-
-                ShowWindowToTray();
-                var dialog = new ContentDialog
-                {
-                    Title = _i18nService.GetString("UpdateAvailableTitle", "Update available"),
-                    Content = string.Format(_i18nService.GetString("UpdateAvailableMessage", "SkyTray Weather {0} is available. Install it now?"), update.Version),
-                    PrimaryButtonText = _i18nService.GetString("UpdateInstall", "Install update"),
-                    CloseButtonText = _i18nService.GetString("UpdateLater", "Later"),
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = Content.XamlRoot
-                };
-
-                if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-                {
-                    HideWindowToTray();
-                    return;
-                }
-
-                bool installerStarted = await updateService.InstallUpdateAsync(update);
-                if (!installerStarted)
-                {
-                    HideWindowToTray();
-                    return;
-                }
-                _isExiting = true;
-                _trayIconManager.Dispose();
-                Microsoft.UI.Xaml.Application.Current.Exit();
+                GitHubUpdateChecker.AvailableUpdate? update = await _updateService.CheckForUpdateAsync();
+                SetAvailableUpdate(update);
+                _settingsWindow?.SetAvailableUpdate(update);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Update check/install failed: {ex.Message}");
+                Debug.WriteLine($"Update check failed: {ex.Message}");
+                _settingsWindow?.SetUpdateCheckFailed();
             }
+            finally
+            {
+                _isUpdateCheckInProgress = false;
+            }
+        }
+
+        private void SetAvailableUpdate(GitHubUpdateChecker.AvailableUpdate? update)
+        {
+            _availableUpdate = update;
+            _trayMenu?.SetAvailableUpdate(update?.Version, _i18nService);
         }
 
         private void UpdateRefreshTimerInterval()
@@ -465,13 +482,43 @@ namespace WinuiWeatherForecastTray
             {
                 if (_settingsWindow == null)
                 {
-                    _settingsWindow = new SettingsWindow(_i18nService);
-                    _settingsWindow.SettingsChanged += (s, args) => { UpdateRefreshTimerInterval(); ApplyHoverCardSetting(); };
+                    _settingsWindow = new SettingsWindow(_i18nService, _settingsService, _updateService, _availableUpdate);
+                    _settingsWindow.SettingsChanged += (s, args) =>
+                    {
+                        UpdateRefreshTimerInterval();
+                        ApplyHoverCardSetting();
+                    };
+                    _settingsWindow.AutoUpdateSettingChanged += (s, args) => ConfigureAutomaticUpdateTimer();
+                    _settingsWindow.UpdateAvailabilityChanged += SetAvailableUpdate;
+                    _settingsWindow.UpdateInstallStarted += (s, args) => ExitForUpdate();
                     _settingsWindow.CacheCleared += (s, args) => OnCachesCleared();
                     _settingsWindow.Closed += (s, args) => _settingsWindow = null;
                 }
                 _settingsWindow.Activate();
             });
+        }
+
+        private void ConfigureAutomaticUpdateTimer(bool isStartup = true)
+        {
+            _updateCheckTimer.Stop();
+            if (!_isExiting && _settingsService.GetAutoUpdateEnabled() && !_updateService.IsDevelopmentBuild)
+            {
+                DateTime nowUtc = DateTime.UtcNow;
+                DateTime nextCheckUtc = UpdateCheckPolicy.GetNextAutomaticCheckUtc(
+                    nowUtc, _settingsService.GetLastUpdateCheckUtc(), isStartup);
+                TimeSpan delay = nextCheckUtc - nowUtc;
+                _updateCheckTimer.Interval = delay > TimeSpan.Zero ? delay : TimeSpan.FromSeconds(1);
+                _updateCheckTimer.Start();
+            }
+        }
+
+        private void ExitForUpdate()
+        {
+            _isExiting = true;
+            _autoRefreshTimer.Stop();
+            _updateCheckTimer.Stop();
+            _trayIconManager.Dispose();
+            Microsoft.UI.Xaml.Application.Current.Exit();
         }
 
         /// <summary>The cached forecast belonged to the old location: drop it and fetch fresh data.</summary>
@@ -487,6 +534,7 @@ namespace WinuiWeatherForecastTray
             {
                 _isExiting = true;
                 _autoRefreshTimer?.Stop();
+                _updateCheckTimer?.Stop();
                 _hoverCard?.Dispose();
                 _trayMenu?.Close();
                 _trayIconManager?.Dispose();
@@ -547,6 +595,7 @@ namespace WinuiWeatherForecastTray
         private void MainWindow_Closed(object sender, WindowEventArgs args)
         {
             _autoRefreshTimer?.Stop();
+            _updateCheckTimer?.Stop();
             _hoverCard?.Dispose();
             _trayMenu?.Close();
             _trayIconManager?.Dispose();

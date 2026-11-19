@@ -60,5 +60,18 @@
   "UpdateAvailableTitle": "Update available",
   "UpdateAvailableMessage": "SkyTray Weather {0} is available. Install it now?",
   "UpdateInstall": "Install update",
-  "UpdateLater": "Later"
+  "UpdateLater": "Later",
+  "AutoUpdateEnabled": "Check for updates automatically",
+  "UpdateCheckNow": "Check now",
+  "UpdateStatusCurrent": "You are up to date",
+  "UpdateStatusAvailable": "Version {0} available",
+  "UpdateStatusFailed": "Could not check for updates",
+  "UpdateStatusChecking": "Checking for updates...",
+  "UpdateStatusRecentlyChecked": "Updates were checked recently",
+  "UpdateDownloadInstall": "Download and install",
+  "UpdateConfirmInstall": "Download and verify version {0}, then install it?",
+  "UpdateDownloading": "Downloading update...",
+  "UpdateInstallError": "Could not verify or install the update",
+  "UpdateChecksumsMissing": "Checksums are unavailable. Opening the release page.",
+  "UpdateTrayMenu": "Update to {0}"
 }

@@ -38,6 +38,28 @@
                     <TextBlock x:Name="TxtHoverCard" Text="Show weather card when hovering the tray icon" TextWrapping="Wrap" VerticalAlignment="Center" />
                 </CheckBox>
 
+                <!-- App updates -->
+                <StackPanel Spacing="6">
+                    <CheckBox x:Name="ChkAutoUpdate" Click="ChkAutoUpdate_Click" FontSize="14" FontWeight="Medium" Foreground="{ThemeResource TextFillColorPrimaryBrush}">
+                        <TextBlock x:Name="TxtAutoUpdate" Text="Check for updates automatically" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </CheckBox>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="TxtUpdateStatus" Text="" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Button x:Name="BtnCheckUpdates" Grid.Column="1" Click="BtnCheckUpdates_Click" Padding="10,4" Style="{StaticResource SubtleButtonStyle}">
+                            <TextBlock x:Name="TxtCheckUpdates" Text="Check now" FontSize="12" />
+                        </Button>
+                    </Grid>
+                    <ProgressBar x:Name="PrgUpdateDownload" Height="4" Visibility="Collapsed" />
+                    <TextBlock x:Name="TxtUpdateError" FontSize="12" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="Collapsed" />
+                    <Button x:Name="BtnInstallUpdate" Click="BtnInstallUpdate_Click" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" Visibility="Collapsed">
+                        <TextBlock x:Name="TxtInstallUpdate" Text="Download and install" />
+                    </Button>
+                </StackPanel>
+
                 <!-- Refresh Interval Selector -->
                 <Grid>
                     <Grid.ColumnDefinitions>

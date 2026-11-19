@@ -18,6 +18,14 @@
                     <TextBlock x:Name="TxtSettings" FontSize="14" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
+            <Button x:Name="BtnUpdate" Click="BtnUpdate_Click" Visibility="Collapsed"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                    Background="Transparent" BorderThickness="0" CornerRadius="6" Padding="12,9">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <FontIcon FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="16" />
+                    <TextBlock x:Name="TxtUpdate" FontSize="14" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
             <Button x:Name="BtnExit" Click="BtnExit_Click"
                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                     Background="Transparent" BorderThickness="0" CornerRadius="6" Padding="12,9">
